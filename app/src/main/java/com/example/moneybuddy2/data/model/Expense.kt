@@ -7,7 +7,7 @@ data class Expense (
     val category: String = "Other",
     val description: String = "",
     val source: String = "Manual",
-    val dataMillis: Long = System.currentTimeMillis(),
+    val dateMillis: Long = System.currentTimeMillis(),
     val rawText: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

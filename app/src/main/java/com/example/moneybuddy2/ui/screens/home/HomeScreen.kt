@@ -8,12 +8,20 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeScreen(
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onAddExpense: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Home (Dashboard placeholder)", style = MaterialTheme.typography.headlineSmall)
         Spacer(Modifier.height(12.dp))
-        Button(onClick = onOpenSettings) {
+
+        Button(onClick = onAddExpense, modifier = Modifier.fillMaxWidth()) {
+            Text("Add Expense (Manual)")
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        OutlinedButton(onClick = onOpenSettings, modifier = Modifier.fillMaxWidth()) {
             Text("Open Settings")
         }
     }
