@@ -7,6 +7,8 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
+import android.util.Log
+
 
 class MoneyRepositoryImpl : MoneyRepository {
     override suspend fun ensureUserProfile(uid: String, email: String?): Boolean {
@@ -25,6 +27,15 @@ class MoneyRepositoryImpl : MoneyRepository {
             true
         } catch (e: Exception) {
             false
+        }
+    }
+
+    override suspend fun getUserProfile(uid: String): UserProfile? {
+        return try {
+            val snap = FirestorePaths.userDoc(uid).get().await()
+            snap.toObject(UserProfile::class.java)
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -87,5 +98,28 @@ class MoneyRepositoryImpl : MoneyRepository {
             false
         }
     }
+
+    override suspend fun listExpensesInRange(
+        uid: String,
+        startMillis: Long,
+        endMillis: Long
+    ): List<Expense> {
+        return try {
+            val snap = FirestorePaths.expenseCol(uid)
+                .whereGreaterThanOrEqualTo("dateMillis", startMillis)
+                .whereLessThanOrEqualTo("dateMillis", endMillis)
+                .orderBy("dateMillis", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            snap.documents.mapNotNull { it.toObject(Expense::class.java) }
+        } catch (e: Exception) {
+            Log.e("MoneyRepo", "listExpensesInRange failed", e)
+            throw e   // IMPORTANT: let ViewModel show the error
+        }
+    }
+
+
+
 
 }

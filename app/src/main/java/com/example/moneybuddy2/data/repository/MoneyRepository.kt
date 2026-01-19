@@ -12,4 +12,8 @@ interface MoneyRepository {
 
     suspend fun updateExpense(uid: String, expense: Expense): Boolean
     suspend fun deleteExpense(uid: String, expenseId: String): Boolean
+
+    suspend fun getUserProfile(uid: String): UserProfile?
+    suspend fun listExpensesInRange(uid: String, startMillis: Long, endMillis: Long): List<Expense>
+
 }
