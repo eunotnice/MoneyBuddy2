@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "722432627600",
+    "project_id": "moneybuddyfyp",
+    "storage_bucket": "moneybuddyfyp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722432627600:android:29ac615960051271555915",
+        "android_client_info": {
+          "package_name": "com.example.moneybuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3MHhfxNGw78vpyPNwN__DZOiQT_RU9bo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:722432627600:android:70b6da72fa95b8c6555915",
+        "android_client_info": {
+          "package_name": "com.example.moneybuddy2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3MHhfxNGw78vpyPNwN__DZOiQT_RU9bo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
