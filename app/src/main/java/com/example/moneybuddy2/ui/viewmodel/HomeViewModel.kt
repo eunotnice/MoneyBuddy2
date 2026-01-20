@@ -17,8 +17,10 @@ data class HomeUiState (
     val profile: UserProfile? = null,
     val monthTotal: Double = 0.0,
     val latestExpenses: List<Expense> = emptyList(),
+    val monthCategoryTotals: List<Pair<String, Double>> = emptyList(),
     val budgetUsedRatio: Double = 0.0,
-    val showBudgetWarning: Boolean = false
+    val showBudgetWarning: Boolean = false,
+    val needsProfileSetup: Boolean = false
 )
 
 class HomeViewModel (
@@ -47,6 +49,14 @@ class HomeViewModel (
                 val monthExpenses = repo.listExpensesInRange(user.uid, start, end)
                 val monthTotal = monthExpenses.sumOf { it.amount }
                 android.util.Log.d("HomeVM", "Month expenses count=${monthExpenses.size}")
+                val categoryTotals = monthExpenses
+                    .groupBy { it.category }
+                    .mapValues { (_, items) -> items.sumOf { it.amount } }
+                    .toList()
+                    .sortedByDescending { it.second }
+                val needsSetup = (profile == null) ||
+                        profile.displayName.isBlank() ||
+                        profile.monthlyBudget <= 0.0
 
                 val latest = repo.listLatestExpenses(user.uid, limit = 10)
 
@@ -59,8 +69,10 @@ class HomeViewModel (
                     profile = profile,
                     monthTotal = monthTotal,
                     latestExpenses = latest,
+                    monthCategoryTotals = categoryTotals,
                     budgetUsedRatio = ratio,
-                    showBudgetWarning = warn
+                    showBudgetWarning = warn,
+                    needsProfileSetup = needsSetup
                 )
             } catch (e: Exception) {
                 _uiState.value = HomeUiState(error = e.message)

@@ -10,6 +10,8 @@ import com.example.moneybuddy2.ui.screens.auth.SignupScreen
 import com.example.moneybuddy2.ui.screens.home.HomeScreen
 import com.example.moneybuddy2.ui.screens.settings.SettingsScreen
 import com.example.moneybuddy2.ui.screens.expense.ManualAddExpenseScreen
+import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
+
 
 
 @Composable
@@ -51,6 +53,9 @@ fun NavGraph (
                 },
                 onAddExpense = {
                     navController.navigate(Routes.ADD_EXPENSE)
+                },
+                onOpenProfile = {
+                    navController.navigate(Routes.PROFILE)
                 }
             )
         }
@@ -62,6 +67,17 @@ fun NavGraph (
                         popUpTo(Routes.HOME) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        composable(Routes.PROFILE){
+            ProfileScreen(
+                onDone = {
+                    navController.navigate(Routes.HOME){
+                        popUpTo(Routes.PROFILE) { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack()}
             )
         }
 

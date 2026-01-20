@@ -16,7 +16,8 @@ import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 @Composable
 fun HomeScreen(
     onOpenSettings: () -> Unit,
-    onAddExpense: () -> Unit
+    onAddExpense: () -> Unit,
+    onOpenProfile: () -> Unit
 ) {
     val repo = remember { AppContainer().repository }
 
@@ -31,8 +32,11 @@ fun HomeScreen(
 
     val ui by vm.uiState.collectAsState(initial = HomeUiState(loading = true))
 
-    LaunchedEffect(Unit) {
-        vm.loadHome()
+    LaunchedEffect(Unit) { vm.loadHome() }
+
+    // Auto-redirect if profile incomplete
+    LaunchedEffect(ui.needsProfileSetup) {
+        if (ui.needsProfileSetup) onOpenProfile()
     }
 
     Scaffold(
@@ -40,14 +44,13 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("MoneyBuddy") },
                 actions = {
+                    TextButton(onClick = onOpenProfile) { Text("Profile") }
                     TextButton(onClick = onOpenSettings) { Text("Settings") }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddExpense) {
-                Text("+")
-            }
+            FloatingActionButton(onClick = onAddExpense) { Text("+") }
         }
     ) { padding ->
         Column(
@@ -57,36 +60,47 @@ fun HomeScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            if (ui.loading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-            }
+            if (ui.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (ui.error != null) Text(ui.error!!, color = MaterialTheme.colorScheme.error)
 
-            if (ui.error != null) {
-                Text(ui.error!!, color = MaterialTheme.colorScheme.error)
-            }
+            // Budget card (with progress)
+            Card {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("This month spending", style = MaterialTheme.typography.titleMedium)
+                    Text("Total: MYR %.2f".format(ui.monthTotal), style = MaterialTheme.typography.headlineSmall)
 
-            // Budget warning
-            if (ui.showBudgetWarning) {
-                val budget = ui.profile?.monthlyBudget ?: 0.0
-                Card {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Budget alert", style = MaterialTheme.typography.titleMedium)
-                        Text("You have used ${(ui.budgetUsedRatio * 100).toInt()}% of your monthly budget.")
-                        Text("Budget: %.2f".format(budget))
+                    val budget = ui.profile?.monthlyBudget ?: 0.0
+                    if (budget > 0.0) {
+                        Text("Budget: MYR %.2f".format(budget))
+                        LinearProgressIndicator(
+                            progress = { ui.budgetUsedRatio.toFloat().coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (ui.showBudgetWarning) {
+                            Text(
+                                "Budget alert: ${(ui.budgetUsedRatio * 100).toInt()}% used",
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        Text("Budget not set yet. Please complete your profile.")
                     }
                 }
             }
 
-            // Month total
+            // Category breakdown card (this month)
             Card {
-                Column(Modifier.padding(12.dp)) {
-                    Text("This month spending", style = MaterialTheme.typography.titleMedium)
-                    Text("Total: MYR %.2f".format(ui.monthTotal), style = MaterialTheme.typography.headlineSmall)
-                    val budget = ui.profile?.monthlyBudget ?: 0.0
-                    if (budget > 0.0) {
-                        Text("Budget: MYR %.2f".format(budget))
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("Category breakdown (this month)", style = MaterialTheme.typography.titleMedium)
+                    if (ui.monthCategoryTotals.isEmpty()) {
+                        Text("No expenses in this month yet.")
                     } else {
-                        Text("Budget: not set (add in profile later)")
+                        ui.monthCategoryTotals.forEach { (cat, total) ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(cat)
+                                Text("MYR %.2f".format(total))
+                            }
+                        }
                     }
                 }
             }
@@ -108,14 +122,9 @@ fun HomeScreen(
                             Column(Modifier.weight(1f)) {
                                 Text(e.merchant.ifBlank { "(No merchant)" }, style = MaterialTheme.typography.titleMedium)
                                 Text("MYR %.2f • %s".format(e.amount, e.category))
-                                if (e.description.isNotBlank()) {
-                                    Text(e.description, style = MaterialTheme.typography.bodySmall)
-                                }
+                                if (e.description.isNotBlank()) Text(e.description, style = MaterialTheme.typography.bodySmall)
                             }
-
-                            TextButton(onClick = { vm.deleteExpense(e.id) }) {
-                                Text("Delete")
-                            }
+                            TextButton(onClick = { vm.deleteExpense(e.id) }) { Text("Delete") }
                         }
                     }
                 }
