@@ -72,5 +72,7 @@ dependencies {
     // For Firestore await() with coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
 
 }

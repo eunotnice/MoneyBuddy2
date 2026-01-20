@@ -12,12 +12,14 @@ import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.HomeUiState
 import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onOpenSettings: () -> Unit,
     onAddExpense: () -> Unit,
-    onOpenProfile: () -> Unit
+    onOpenProfile: () -> Unit,
+    onAddReceipt: () -> Unit
 ) {
     val repo = remember { AppContainer().repository }
 
@@ -46,12 +48,15 @@ fun HomeScreen(
                 actions = {
                     TextButton(onClick = onOpenProfile) { Text("Profile") }
                     TextButton(onClick = onOpenSettings) { Text("Settings") }
+                    TextButton(onClick = onAddReceipt) { Text("Receipt") }
                 }
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddExpense) { Text("+") }
         }
+
+
     ) { padding ->
         Column(
             modifier = Modifier

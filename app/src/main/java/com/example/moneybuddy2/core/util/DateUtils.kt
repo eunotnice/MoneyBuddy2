@@ -1,7 +1,9 @@
 package com.example.moneybuddy2.core.util
 
 import java.util.Calendar
-
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 object DateUtils {
     fun startOfCurrentMonthMillis(): Long{
         val cal = Calendar.getInstance()
@@ -21,5 +23,10 @@ object DateUtils {
         cal.set(Calendar.SECOND, 59)
         cal.set(Calendar.MILLISECOND, 999)
         return cal.timeInMillis
+    }
+
+    fun formatDate(millis: Long): String {
+        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        return sdf.format(Date(millis))
     }
 }

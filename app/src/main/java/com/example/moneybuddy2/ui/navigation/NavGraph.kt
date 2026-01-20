@@ -11,8 +11,8 @@ import com.example.moneybuddy2.ui.screens.home.HomeScreen
 import com.example.moneybuddy2.ui.screens.settings.SettingsScreen
 import com.example.moneybuddy2.ui.screens.expense.ManualAddExpenseScreen
 import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
-
-
+import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
+import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
 
 @Composable
 fun NavGraph (
@@ -56,6 +56,9 @@ fun NavGraph (
                 },
                 onOpenProfile = {
                     navController.navigate(Routes.PROFILE)
+                },
+                onAddReceipt = {
+                    navController.navigate(Routes.RECEIPT_PICK)
                 }
             )
         }
@@ -86,6 +89,25 @@ fun NavGraph (
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Routes.RECEIPT_PICK) {
+            ReceiptPickScreen(
+                onBack = { navController.popBackStack() },
+                onGoToConfirm = { navController.navigate(Routes.RECEIPT_CONFIRM) }
+            )
+        }
+
+        composable(Routes.RECEIPT_CONFIRM) {
+            ReceiptConfirmScreen(
+                onBack = { navController.popBackStack() },
+                onSaved = {
+                    navController.navigate(Routes.HOME) {
+                        popUpTo(Routes.HOME) { inclusive = false }
+                    }
+                }
+            )
+        }
+
 
     }
 }

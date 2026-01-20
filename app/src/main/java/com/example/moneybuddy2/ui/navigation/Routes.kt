@@ -7,5 +7,7 @@ object Routes {
     const val SETTINGS = "settings"
     const val ADD_EXPENSE = "add_expense"
     const val RECEIPT_PICK = "receipt_pick"
+    const val RECEIPT_CONFIRM = "receipt_confirm"
     const val PROFILE = "profile"
+
 }
