@@ -6,7 +6,10 @@ import java.util.Calendar
 data class ParsedReceipt(
     val merchant: String = "",
     val amount: Double? = 0.0,
-    val dateMillis: Long? = null
+    val dateMillis: Long? = null,
+    val rawText: String = "",
+    val category: String? = "Other",
+    val merchantCandidates: List<String>? = emptyList()
 )
 
 object ReceiptParser {

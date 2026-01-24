@@ -4,6 +4,9 @@ import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.time.LocalDate
+import java.time.ZoneId
+
 object DateUtils {
     fun startOfCurrentMonthMillis(): Long{
         val cal = Calendar.getInstance()
@@ -28,5 +31,10 @@ object DateUtils {
     fun formatDate(millis: Long): String {
         val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
         return sdf.format(Date(millis))
+    }
+
+    fun isoToMillis(iso: String): Long {
+        val d = LocalDate.parse(iso.trim()) // expects "YYYY-MM-DD"
+        return d.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
     }
 }

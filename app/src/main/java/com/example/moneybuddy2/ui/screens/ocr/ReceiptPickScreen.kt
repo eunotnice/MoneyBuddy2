@@ -1,5 +1,6 @@
 package com.example.moneybuddy2.ui.screens.ocr
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.OcrUiState
@@ -18,17 +22,35 @@ import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
 import com.example.moneybuddy2.MoneyBuddyApp
 import com.example.moneybuddy2.core.util.DateUtils
 import com.example.moneybuddy2.core.util.DateUtils.formatDate
+import com.example.moneybuddy2.ui.navigation.Routes
+import com.example.moneybuddy2.ui.viewmodel.OcrViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptPickScreen(
+    parentEntry: NavBackStackEntry,
     onBack: () -> Unit,
-    onGoToConfirm: () -> Unit
+    onGoToConfirm: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val app = context.applicationContext as MoneyBuddyApp
-    val vm = remember { app.container.ocrViewModel }
+
+    val app = (LocalContext.current.applicationContext as MoneyBuddyApp)
+    val repo = app.container.repository
+
+    val vm: OcrViewModel = viewModel(
+        viewModelStoreOwner = parentEntry,
+        factory = remember(repo) { OcrViewModelFactory(repo) }
+    )
+//    Log.d("ReceiptDebug", "ReceiptPickScreen composed")
+//    val vm: OcrViewModel = viewModel(parentEntry)
+//
     val ui by vm.ui.collectAsState()
+//
+//    LaunchedEffect(Unit) {
+//        Log.d("ReceiptDebug", "ReceiptPickScreen LaunchedEffect")
+//    }
+//
+    val context = LocalContext.current
+//    val app = context.applicationContext as MoneyBuddyApp
 
 //    val repo = remember { AppContainer().repository }
 //    val vm: OcrViewModel = viewModel(
@@ -43,6 +65,7 @@ fun ReceiptPickScreen(
     val pickImage = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
+        Log.d("ReceiptDebug", "Picker returned uri = $uri")
         vm.setImage(uri)
     }
 

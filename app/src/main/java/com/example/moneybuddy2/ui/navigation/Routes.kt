@@ -10,4 +10,7 @@ object Routes {
     const val RECEIPT_CONFIRM = "receipt_confirm"
     const val PROFILE = "profile"
 
+    const val RECEIPT_GRAPH = "receipt_graph"
+
+
 }

@@ -1,5 +1,6 @@
 package com.example.moneybuddy2.ui.viewmodel
 
+import android.util.Log
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+import com.example.moneybuddy2.data.remote.GeminiReceiptService
+
+
+//import com.example.moneybuddy2.data.remote.OpenAiReceiptService
+import com.example.moneybuddy2.core.util.DateUtils.isoToMillis
 
 data class OcrUiState(
     val loading: Boolean = false,
@@ -29,6 +38,13 @@ data class OcrUiState(
 class OcrViewModel (
     private val repo: MoneyRepository
 ) : ViewModel() {
+
+   // private val openAi = OpenAiReceiptService()
+    private val gemini = GeminiReceiptService()
+
+    private val TAG = "OcrVM"
+
+
     private val _ui = MutableStateFlow(OcrUiState())
     val ui: StateFlow<OcrUiState> = _ui
 
@@ -51,12 +67,46 @@ class OcrViewModel (
                 val result = recognizer.process(image).await()
 
                 val raw = result.text ?: ""
-                val parsed = ReceiptParser.parse(raw)
+                Log.d(TAG, "OCR done. raw length=${raw.length}")
+                val systemRules = """
+    You extract purchase receipt fields from OCR text.
+    IMPORTANT:
+    - Merchant must be the business/store name, NOT server/cashier/staff.
+    - Amount must be the GRAND TOTAL paid.
+    - Date must be YYYY-MM-DD or null.
+    Return ONLY JSON.
+""".trimIndent()
+
+                logGeminiInput(systemRules, raw)
+
+                val parsed: ParsedReceipt = try {
+                    val ai = withContext(Dispatchers.IO) {
+                        gemini.extractReceiptFieldsBlocking(raw)
+                    }
+
+                    ParsedReceipt(
+                        merchant = ai.merchant,
+                        merchantCandidates = ai.merchantCandidates,
+                        category = ai.category,
+                        amount = ai.amount,
+                        dateMillis = ai.dateIso?.let { isoToMillis(it) }
+                    )
+
+                } catch (e: Exception) {
+                    Log.e(TAG, "Gemini failed, fallback to rule parser", e)
+
+                    // IMPORTANT: this must return ParsedReceipt
+                    ReceiptParser.parse(raw)   // <- this must be ParsedReceipt
+                }
+
+                Log.d(TAG, "AI PARSED RESULT = $parsed")
+
 
                 _ui.value = _ui.value.copy(
                     loading = false,
                     rawText = raw,
-                    parsed = parsed
+                    parsed = parsed,
+                    error = null
                 )
             } catch (e: Exception) {
                 _ui.value = _ui.value.copy(loading = false, error = e.message ?: "OCR failed")
@@ -101,4 +151,12 @@ class OcrViewModel (
     fun reset(){
         _ui.value = OcrUiState()
     }
+
+    private fun logGeminiInput(systemRules: String, ocrText: String) {
+        Log.d(TAG, "===== GEMINI INPUT =====")
+        Log.d(TAG, "SYSTEM RULES:\n$systemRules")
+        Log.d(TAG, "OCR TEXT (len=${ocrText.length}):\n$ocrText")
+        Log.d(TAG, "========================")
+    }
+
 }

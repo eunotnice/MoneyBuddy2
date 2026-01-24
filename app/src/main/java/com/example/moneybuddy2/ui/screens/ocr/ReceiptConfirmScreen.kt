@@ -7,9 +7,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.moneybuddy2.core.Constants
 import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.OcrUiState
@@ -19,19 +23,21 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import com.example.moneybuddy2.MoneyBuddyApp
+import com.example.moneybuddy2.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReceiptConfirmScreen(
+    parentEntry: NavBackStackEntry,
     onBack: () -> Unit,
     onSaved: () -> Unit
 ) {
-    val context = LocalContext.current
-    val app = context.applicationContext as MoneyBuddyApp
-    val vm = remember { app.container.ocrViewModel }
+    val vm: OcrViewModel = viewModel(parentEntry)
+
     val ui by vm.ui.collectAsState()
 
-
+    val context = LocalContext.current
+    val app = context.applicationContext as MoneyBuddyApp
 //    val repo = remember { AppContainer().repository }
 //    val vm: OcrViewModel = viewModel(
 //        factory = object : androidx.lifecycle.ViewModelProvider.Factory {
