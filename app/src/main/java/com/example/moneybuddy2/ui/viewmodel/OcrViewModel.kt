@@ -73,6 +73,7 @@ class OcrViewModel (
     IMPORTANT:
     - Merchant must be the business/store name, NOT server/cashier/staff.
     - Amount must be the GRAND TOTAL paid.
+    - Provide a category for the items in the receipt.
     - Date must be YYYY-MM-DD or null.
     Return ONLY JSON.
 """.trimIndent()

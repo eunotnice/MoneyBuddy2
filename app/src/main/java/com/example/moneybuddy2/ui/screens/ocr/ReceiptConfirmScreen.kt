@@ -65,6 +65,7 @@ fun ReceiptConfirmScreen(
     LaunchedEffect(parsed) {
         if (!didSeed && parsed != null) {
             merchant = parsed.merchant
+            category = parsed.category ?: "Other"
             amountText = parsed.amount?.toString() ?: ""
             dateMillis = parsed.dateMillis ?: System.currentTimeMillis()
             didSeed = true
@@ -97,6 +98,13 @@ fun ReceiptConfirmScreen(
                 value = merchant,
                 onValueChange = { merchant = it },
                 label = { Text("Merchant") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                label = { Text("Category") },
                 modifier = Modifier.fillMaxWidth()
             )
 

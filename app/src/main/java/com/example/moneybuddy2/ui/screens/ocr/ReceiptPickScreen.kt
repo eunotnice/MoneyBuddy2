@@ -127,6 +127,7 @@ fun ReceiptPickScreen(
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text("Parsed draft (rule-based)", style = MaterialTheme.typography.titleMedium)
                             Text("Merchant: ${parsed.merchant.ifBlank { "(not found)" }}")
+                            Text("Category: ${parsed.category?.ifBlank{ "Others"}}")
                             Text("Amount: ${parsed.amount?.toString() ?: "(not found)"}")
                             Text(
                                 "Date: " + (parsed.dateMillis?.let { formatDate(it) } ?: "(not found)")

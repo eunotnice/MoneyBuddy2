@@ -45,24 +45,49 @@ class GeminiReceiptService(
                     put("type", "array")
                     put("items", JSONObject().apply { put("type", "string") })
                 })
+
+                put("category", JSONObject().apply { put("type", "string") })
+                put("categoryConfidence", JSONObject().apply { put("type", "number") })
+                put("categoryReason", JSONObject().apply { put("type", "string") })
             })
             put("required", JSONArray()
                 .put("merchant")
                 .put("amount")
                 .put("dateIso")
                 .put("merchantCandidates")
+                .put("category")
+                .put("categoryConfidence")
+                .put("categoryReason")
             )
         }
 
+        val allowedCategories = listOf(
+            "Food & Drink","Groceries","Transport","Shopping","Utilities",
+            "Health","Education","Entertainment","Travel","Services","Others"
+        ).joinToString(", ")
+
         val systemRules = """
             You extract purchase receipt fields from OCR text.
-            IMPORTANT:
-            - Merchant must be the business/store name, NOT server/cashier/staff.
-            - Amount must be the GRAND TOTAL paid (prefer lines like TOTAL/GRAND TOTAL/AMOUNT DUE).
-            - Date must be the purchase date in YYYY-MM-DD if present; otherwise null.
-            - merchantCandidates: up to 5 plausible business names; exclude staff/cashier names.
             Return ONLY JSON matching the schema.
-        """.trimIndent()
+            
+            Rules:
+            - Merchant must be the business/store name, NOT server/cashier/staff.
+            - Amount must be the GRAND TOTAL paid (TOTAL/GRAND TOTAL/AMOUNT DUE).
+            - Date must be YYYY-MM-DD if present; otherwise null.
+            - merchantCandidates: up to 5 plausible business names; exclude staff/cashier names.
+            
+            Category classification:
+            - Choose EXACTLY ONE category from this list: $allowedCategories
+            - Use "Groceries" for supermarkets/minimarts; "Food & Drink" for restaurants/cafes/bars.
+            - Use "Transport" for fuel, transit, ride-hailing, tolls.
+            - Use "Utilities" for telco, internet, electricity, water.
+            - Use "Shopping" for retail/general goods not groceries.
+            - If uncertain, set category = "Others" with low confidence.
+            
+            Return:
+            - categoryConfidence: 0.0–1.0
+            - categoryReason: <= 12 words (e.g., "merchant is a cafe; items include latte").
+            """.trimIndent()
 
         val bodyJson = JSONObject().apply {
             put("contents", JSONArray().put(
@@ -124,10 +149,17 @@ class GeminiReceiptService(
         val candidatesList = buildList {
             for (i in 0 until cand.length()) add(cand.optString(i))
         }
+        val category = out.optString("category", "Others")
+        val categoryConfidence = out.optDouble("categoryConfidence", 0.0)
+        val categoryReason = out.optString("categoryReason", "")
+
 
         return AiReceiptResult(
             merchant = merchant,
             amount = amount,
+            category = category,
+//            categoryConfidence = categoryConfidence,
+//            categoryReason = categoryReason,
             dateIso = dateIso,
             merchantCandidates = candidatesList
         )
