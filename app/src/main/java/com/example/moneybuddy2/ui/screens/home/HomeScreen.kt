@@ -19,7 +19,8 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onAddExpense: () -> Unit,
     onOpenProfile: () -> Unit,
-    onAddReceipt: () -> Unit
+    onAddReceipt: () -> Unit,
+    onOpenChat: () -> Unit
 ) {
     val repo = remember { AppContainer().repository }
 
@@ -49,6 +50,7 @@ fun HomeScreen(
                     TextButton(onClick = onOpenProfile) { Text("Profile") }
                     TextButton(onClick = onOpenSettings) { Text("Settings") }
                     TextButton(onClick = onAddReceipt) { Text("Receipt") }
+                    TextButton(onClick = onOpenChat) { Text("Chat") }
                 }
             )
         },

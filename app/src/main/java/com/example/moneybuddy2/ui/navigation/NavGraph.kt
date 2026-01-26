@@ -5,6 +5,7 @@ import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,13 +17,18 @@ import com.example.moneybuddy2.ui.screens.expense.ManualAddExpenseScreen
 import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
+import com.example.moneybuddy2.ui.screens.chat.ChatScreen
 import androidx.navigation.compose.navigation
+import com.example.moneybuddy2.MoneyBuddyApp
 
 @Composable
 fun NavGraph (
     navController: NavHostController,
     startDestination: String
 ){
+    val context = LocalContext.current
+    val app = context.applicationContext as MoneyBuddyApp
+
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.LOGIN){
             LoginScreen(
@@ -64,7 +70,16 @@ fun NavGraph (
                 onAddReceipt = {
                     Log.d(TAG, "onAddReceipt clicked")
                     navController.navigate(Routes.RECEIPT_PICK)
-                }
+                },
+                onOpenChat = { navController.navigate(Routes.CHAT) }
+            )
+        }
+
+        composable(Routes.CHAT) {
+            val vm = app.container.chatViewModel
+            ChatScreen(
+                vm = vm,
+                onBack = { navController.popBackStack() }
             )
         }
 

@@ -9,7 +9,7 @@ object Routes {
     const val RECEIPT_PICK = "receipt_pick"
     const val RECEIPT_CONFIRM = "receipt_confirm"
     const val PROFILE = "profile"
-
+    const val CHAT = "chat"
     const val RECEIPT_GRAPH = "receipt_graph"
 
 
