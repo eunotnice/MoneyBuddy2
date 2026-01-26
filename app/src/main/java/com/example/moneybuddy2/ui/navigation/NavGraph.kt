@@ -4,6 +4,7 @@ package com.example.moneybuddy2.ui.navigation
 import android.content.ContentValues.TAG
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -18,9 +19,11 @@ import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
 import com.example.moneybuddy2.ui.screens.chat.ChatScreen
+import com.example.moneybuddy2.ui.screens.chat.RecommendationScreen
+import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
 import androidx.navigation.compose.navigation
 import com.example.moneybuddy2.MoneyBuddyApp
-
+import com.example.moneybuddy2.di.AppContainer
 @Composable
 fun NavGraph (
     navController: NavHostController,
@@ -71,7 +74,11 @@ fun NavGraph (
                     Log.d(TAG, "onAddReceipt clicked")
                     navController.navigate(Routes.RECEIPT_PICK)
                 },
-                onOpenChat = { navController.navigate(Routes.CHAT) }
+                onOpenChat = { navController.navigate(Routes.CHAT) },
+
+                onOpenRecommendations = { navController.navigate(Routes.RECOMMENDATIONS) }
+
+
             )
         }
 
@@ -82,6 +89,23 @@ fun NavGraph (
                 onBack = { navController.popBackStack() }
             )
         }
+
+        composable(Routes.RECOMMENDATIONS) {
+            val context = LocalContext.current
+            val app = context.applicationContext as MoneyBuddyApp
+            val vm = app.container.recommendationViewModel
+
+            // Trigger loading ONCE
+            LaunchedEffect(Unit) {
+                vm.loadRecommendations(goalGap = 200.0) // or null
+            }
+
+            RecommendationScreen(
+                vm = vm,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
 
         composable(Routes.SETTINGS){
             SettingsScreen(
