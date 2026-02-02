@@ -20,10 +20,18 @@ import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
 import com.example.moneybuddy2.ui.screens.chat.ChatScreen
 import com.example.moneybuddy2.ui.screens.chat.RecommendationScreen
+import com.example.moneybuddy2.ui.screens.chat.BotScreen
 import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
+import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 import androidx.navigation.compose.navigation
 import com.example.moneybuddy2.MoneyBuddyApp
 import com.example.moneybuddy2.di.AppContainer
+import com.example.moneybuddy2.ui.screens.chat.ChatbotRoute
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import com.example.moneybuddy2.data.repository.FaqRepository
+import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModelFactory
+
 @Composable
 fun NavGraph (
     navController: NavHostController,
@@ -76,11 +84,36 @@ fun NavGraph (
                 },
                 onOpenChat = { navController.navigate(Routes.CHAT) },
 
-                onOpenRecommendations = { navController.navigate(Routes.RECOMMENDATIONS) }
+                onOpenRecommendations = { navController.navigate(Routes.RECOMMENDATIONS) },
+                onOpenBot = { navController.navigate(Routes.CHATBOT) }
 
 
             )
         }
+
+        composable(Routes.CHATBOT) { entry ->
+            val context = LocalContext.current
+            val app = context.applicationContext as MoneyBuddyApp
+
+            val factory = remember {
+                ChatbotViewModelFactory(
+                    appContext = app.applicationContext,
+                    container = app.container
+                )
+            }
+
+            val vm: ChatbotViewModel = viewModel(
+                viewModelStoreOwner = entry,
+                factory = factory
+            )
+
+            BotScreen(
+                vm = vm,
+                onBack = { navController.popBackStack() },
+                whatsappPhoneE164 = "601127275319"
+            )
+        }
+
 
         composable(Routes.CHAT) {
             val vm = app.container.chatViewModel
@@ -133,6 +166,8 @@ fun NavGraph (
                 onBack = { navController.popBackStack() }
             )
         }
+
+
 
 //        composable(Routes.RECEIPT_PICK) {
 //            ReceiptPickScreen(

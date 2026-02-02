@@ -1,0 +1,58 @@
+[
+  {
+    "id": "upfront_payment",
+    "category": "Payments",
+    "question": "Do I need to pay upfront payment?",
+    "keywords": ["upfront", "advance", "pay first", "pay upfront", "first payment"],
+    "answer": "There is no upfront payment required. You can consult with SBH for free before deciding to use our services. We ensure transparency regarding our fees."
+  },
+  {
+    "id": "payment_methods",
+    "category": "Payments",
+    "question": "What are the payment methods?",
+    "keywords": ["payment method", "how to pay", "bank transfer", "online transfer", "cash"],
+    "answer": "Payment methods we offer mostly are via online bank transfer or credit card"
+  },
+  {
+    "id": "penalty_fee",
+    "category": "Payments",
+    "question": "Will there be a penalty fee if I do not proceed to pursue any of the services provided after first consultation?",
+    "keywords": ["penalty", "fee", "not proceed", "cancel", "after consultation"],
+    "answer": "Absolutely not. We offer free consultancy and will only charge on our client upon taking up our plan."
+  },
+  {
+    "id": "service_fees",
+    "category": "Fees",
+    "question": "What are the fees associated with SBH Financial Consultancy's services?",
+    "keywords": ["fees", "charges", "pricing", "cost", "how much"],
+    "answer": "The fees for SBH Financial Consultancy’s services vary depending on the complexity of your financial situation and the type of services required. SBH Financial Consultancy is committed to transparency and will discuss all fees upfront during the initial consultation. We offer a personalized approach to each client, ensuring that the services provided are tailored to your specific needs and financial goals."
+  },
+  {
+    "id": "best_solution",
+    "category": "Services",
+    "question": "How do I make sure SBH provides the best solutions or services to cater for my demand?",
+    "keywords": ["best", "solution", "ensure", "match", "recommend", "suitable"],
+    "answer": "Our financial consultants have been serving clients for more than seven years and we follow our standard operating procedures to ensure each of our client meets his or her needs."
+  },
+  {
+    "id": "lower_interest_rate",
+    "category": "Loans",
+    "question": "Will I get a lower interest rate on a loan by applying through SBH?",
+    "keywords": ["lower interest", "interest rate", "loan rate", "cheaper", "apply through"],
+    "answer": "Interest rate of a loan is subject to each client’s condition such as credit rating. Our financial consultants will do their best to make sure you get the best offers to achieve your goals."
+  },
+  {
+    "id": "mortgage_refinancing",
+    "category": "Loans",
+    "question": "When should I consider a mortgage refinancing solution?",
+    "keywords": ["refinance", "refinancing", "mortgage", "housing loan", "restructure"],
+    "answer": "When you need a substantial amount of cash flow or facing difficulties to repay your existing loans, this is the best opportunity to consider mortgage refinancing solution. With our help, you can bet on getting the best solution and the most savings on your money."
+  },
+  {
+    "id": "does_sbh_provide_loan",
+    "category": "Loans",
+    "question": "Do SBH provides loan to me?",
+    "keywords": ["provide loan", "give loan", "lend", "sbh loan", "loan from sbh"],
+    "answer": "SBH is a legitimate financial consultancy. We do not provide loans. We only assist in resolving bank debts and bank loans, and 100% of the funds come from the bank"
+  }
+]
