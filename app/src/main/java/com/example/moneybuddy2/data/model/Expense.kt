@@ -9,5 +9,12 @@ data class Expense (
     val source: String = "Manual",
     val dateMillis: Long = System.currentTimeMillis(),
     val rawText: String? = null,
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+
+    //carbon emissiont tracker
+    val co2eKg: Double? = null,
+    val co2eRuleId: String = "none",
+    val co2eFactorVersion: String = "unknown",
+    val co2eAssumptions: Map<String, Any> = emptyMap()
+
 )

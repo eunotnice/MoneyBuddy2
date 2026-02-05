@@ -128,11 +128,6 @@ fun NavGraph (
             val app = context.applicationContext as MoneyBuddyApp
             val vm = app.container.recommendationViewModel
 
-            // Trigger loading ONCE
-            LaunchedEffect(Unit) {
-                vm.loadRecommendations(goalGap = 200.0) // or null
-            }
-
             RecommendationScreen(
                 vm = vm,
                 onBack = { navController.popBackStack() }
@@ -222,6 +217,8 @@ fun NavGraph (
                 )
             }
         }
+
+
 
     }
 }

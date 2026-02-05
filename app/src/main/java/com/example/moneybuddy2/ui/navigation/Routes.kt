@@ -11,9 +11,9 @@ object Routes {
     const val PROFILE = "profile"
     const val CHAT = "chat"
     const val RECEIPT_GRAPH = "receipt_graph"
-
     const val RECOMMENDATIONS = "recommendations"
-
     const val CHATBOT = "chatbot"
+    const val CARBON = "carbon"
+
 
 }

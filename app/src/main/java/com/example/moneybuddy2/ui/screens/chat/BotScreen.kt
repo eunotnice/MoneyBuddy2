@@ -3,6 +3,7 @@ package com.example.moneybuddy2.ui.screens.chat
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -54,15 +55,19 @@ fun BotScreen (
             }
 
             // Quick replies
-            Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                val quick = vm.getQuickReplies().take(4) // show first 4 only
-                quick.forEach { label ->
-                    AssistChip(
-                        onClick = {
-                            lastAction = vm.send(label)
-                        },
-                        label = { Text(label) }
-                    )
+            if (ui.quickReplies.isNotEmpty()) {
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(ui.quickReplies) { label ->
+                        AssistChip(
+                            onClick = { lastAction = vm.send(label) },
+                            label = { Text(label) }
+                        )
+                    }
                 }
             }
 

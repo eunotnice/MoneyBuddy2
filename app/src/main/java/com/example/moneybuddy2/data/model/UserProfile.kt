@@ -9,6 +9,7 @@ data class UserProfile (
     val monthlyIncome: Double = 0.0,
     val monthlyBudget: Double = 0.0,
     val savingGoal: Double = 0.0,
+    val savingGoalTargetDate: Long? =null,
     val currency: String = "MYR",
     val createdAt: Timestamp = Timestamp.now(),
     val updatedAt: Timestamp = Timestamp.now()

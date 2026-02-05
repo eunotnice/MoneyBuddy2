@@ -8,7 +8,7 @@ import com.example.moneybuddy2.core.chat.BotRouter
 import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.ChatUiState
-import com.example.moneybuddy2.data.model.Role
+import com.example .moneybuddy2.data.model.Role
 import com.example.moneybuddy2.data.model.FaqItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,7 +41,8 @@ class ChatbotViewModel (
 
         _ui.value = _ui.value.copy(
             messages = _ui.value.messages + ChatMessage(Role.USER, trimmed),
-            error = null
+            error = null,
+            quickReplies = emptyList()
         )
 
         val action = BotRouter.route(trimmed, faqs, categories)
@@ -49,7 +50,8 @@ class ChatbotViewModel (
         when (action) {
             is BotAction.Reply -> {
                 _ui.value = _ui.value.copy(
-                    messages = _ui.value.messages + ChatMessage(Role.ASSISTANT, action.text)
+                    messages = _ui.value.messages + ChatMessage(Role.ASSISTANT, action.text),
+                    quickReplies = action.quickReplies
                 )
             }
             is BotAction.ShowFaqCategory -> {
@@ -60,7 +62,8 @@ class ChatbotViewModel (
                     messages = _ui.value.messages + ChatMessage(
                         Role.ASSISTANT,
                         "Here are FAQs under ${action.category}:\n$qs\n\nType one of the questions or ask in your own words."
-                    )
+                    ),
+                    quickReplies = action.questions + "Book consultation"
                 )
             }
             is BotAction.OpenWhatsapp -> {

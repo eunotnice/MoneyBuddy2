@@ -10,6 +10,7 @@ enum class Role { USER, ASSISTANT }
 
 data class ChatUiState(
     val messages: List<ChatMessage> = emptyList(),
+    val quickReplies: List<String> = emptyList(),
     val sending: Boolean = false,
     val error: String? = null
 )

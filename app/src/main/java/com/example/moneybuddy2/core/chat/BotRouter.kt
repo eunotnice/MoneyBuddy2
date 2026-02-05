@@ -4,12 +4,27 @@ import com.example.moneybuddy2.data.model.FaqItem
 import kotlin.math.max
 
 sealed class BotAction{
-    data class Reply(val text: String, val quickReplies: List<String> = emptyList()) : BotAction()
+    data class Reply(
+        val text: String,
+        val quickReplies: List<String> = emptyList()
+    ) : BotAction()
     data class OpenWhatsapp(val prefillMessage: String) : BotAction()
-    data class ShowFaqCategory(val category: String) : BotAction()
+    data class ShowFaqCategory(
+        val category: String,
+        val questions: List<String>
+    ) : BotAction()
 }
 
 object BotRouter {
+    private val greetingSignals = listOf(
+        "hello", "hi", "hey", "good morning", "good afternoon", "good evening"
+    )
+    private val aiSignals = listOf(
+        "are you", "ai", "bot", "human"
+    )
+    private val capabilitySignals = listOf(
+        "what can you do", "help", "menu", "options"
+    )
     private val bookingSignals = listOf(
         "book", "booking", "appointment", "consult", "consultation", "schedule",
         "whatsapp", "talk to", "call", "meet"
@@ -21,6 +36,36 @@ object BotRouter {
         categories: List<String>
     ): BotAction {
         val t = userText.trim().lowercase()
+
+        //greeting
+        if(greetingSignals.any{t==it||t.startsWith(it)}){
+            return BotAction.Reply(
+                text = "Hi! 👋 I’m the SBH Financial Consultancy AI Assistant. How may I assist you today?",
+                quickReplies = categories + "Book consultation"
+            )
+        }
+
+        //ai disclosure
+        if(aiSignals.any{t.contains(it)}) {
+            return BotAction.Reply(
+                text = "I’m an automated chatbot designed to answer SBH company FAQs and help with consultation bookings.",
+                quickReplies = listOf("What can you do?", "Book consultation")
+            )
+        }
+
+        //capabilities/help
+        if(capabilitySignals.any{t.contains(it)}){
+            return BotAction.Reply(
+                """
+I can help you with:
+• Company FAQs (fees, payments, loans, consultation process)
+• Booking a financial consultation appointment
+• Connecting you to a human representative via WhatsApp
+""".trimIndent(),
+                quickReplies = categories + "Book consultation"
+            )
+        }
+
         //booking+whatsapp
         if(bookingSignals.any { t.contains(it)}){
             return BotAction.OpenWhatsapp(
@@ -31,7 +76,13 @@ object BotRouter {
         //category shortcut
         val matchedCategory = categories.firstOrNull{ t.contains(it.lowercase())}
         if(matchedCategory != null){
-            return BotAction.ShowFaqCategory(matchedCategory)
+            val questions = faqs
+                .filter { it.category == matchedCategory }
+                .map { it.question }
+
+            return BotAction.ShowFaqCategory(
+                category = matchedCategory,
+                questions = questions)
         }
 
         //best faq matched by keyword scoring

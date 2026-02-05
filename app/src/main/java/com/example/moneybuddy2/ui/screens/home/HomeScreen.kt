@@ -278,6 +278,11 @@ fun HomeScreenContent(
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
+                                    Text("RM %.2f".format(e.amount))
+                                    e.co2eKg?.let {
+                                        Text("≈ %.2f kgCO₂e".format(it), style = MaterialTheme.typography.bodySmall)
+                                    }
+
                                 }
                                 TextButton(onClick = { onDeleteExpense(e.id) }) { Text("Delete") }
                             }

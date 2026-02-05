@@ -20,8 +20,10 @@ import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.OcrUiState
 import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
 import com.example.moneybuddy2.MoneyBuddyApp
+import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.util.DateUtils
 import com.example.moneybuddy2.core.util.DateUtils.formatDate
+import com.example.moneybuddy2.data.model.CarbonFactors
 import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.viewmodel.OcrViewModelFactory
 
@@ -36,10 +38,19 @@ fun ReceiptPickScreen(
     val app = (LocalContext.current.applicationContext as MoneyBuddyApp)
     val repo = app.container.repository
 
+    val carbonEstimator = remember {
+        CarbonEstimator(
+            factors = CarbonFactors("local-dev", 0.58, 2.31),
+            petrolPriceRmPerLitre = 2.05
+        )
+    }
+
     val vm: OcrViewModel = viewModel(
         viewModelStoreOwner = parentEntry,
-        factory = remember(repo) { OcrViewModelFactory(repo) }
+        factory = remember(repo) { OcrViewModelFactory(repo, carbonEstimator) }
     )
+
+
 //    Log.d("ReceiptDebug", "ReceiptPickScreen composed")
 //    val vm: OcrViewModel = viewModel(parentEntry)
 //

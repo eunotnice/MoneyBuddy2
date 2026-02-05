@@ -1,0 +1,9 @@
+{
+  "version": "2026-01",
+  "electricityKgPerKwh": 0.758,
+  "petrolKgPerLitre": 2.31,
+  "sources": [
+    { "title": "Grid emission factor", "publisher": "Official energy authority", "url": "https://myenergystats.st.gov.my/documents/d/guest/grid-emission-factor-gef-in-malaysia" },
+    { "title": "Fuel combustion factor", "publisher": "International guideline", "url": "https://www.mgtc.gov.my/lcos-personal-calculator/" }
+  ]
+}
