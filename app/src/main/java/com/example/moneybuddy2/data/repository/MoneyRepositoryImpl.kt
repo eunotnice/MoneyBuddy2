@@ -8,9 +8,14 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 import android.util.Log
+import com.example.moneybuddy2.core.carbon.CarbonEstimator
+import com.example.moneybuddy2.core.util.DateUtils.endOfCurrentMonthMillis
+import com.example.moneybuddy2.core.util.DateUtils.startOfCurrentMonthMillis
 
 
-class MoneyRepositoryImpl : MoneyRepository {
+class MoneyRepositoryImpl  (
+    private val carbonEstimator: CarbonEstimator
+) : MoneyRepository{
     override suspend fun ensureUserProfile(uid: String, email: String?): Boolean {
         return try {
             val docRef = FirestorePaths.userDoc(uid)
@@ -51,15 +56,35 @@ class MoneyRepositoryImpl : MoneyRepository {
     }
 
     override suspend fun addExpense(uid: String, expense: Expense): Boolean {
-        return try{
+        return try {
             val col = FirestorePaths.expenseCol(uid)
             val doc = col.document()
-            doc.set(expense.copy(id=doc.id)).await()
+
+            val est = carbonEstimator.estimate(
+                merchant = expense.merchant,
+                amountRm = expense.amount,
+                category = expense.category,
+                description = expense.description
+            )
+
+            val enriched = expense.copy(
+                id = doc.id,
+                merchant = expense.merchant.trim(),
+                description = expense.description.trim(),
+
+                co2eKg = est?.kgCo2e,
+                co2eRuleId = est?.ruleId ?: "none",
+                co2eFactorVersion = est?.factorVersion ?: "unknown",
+                co2eAssumptions = est?.assumptions ?: emptyMap()
+            )
+
+            doc.set(enriched).await()
             true
         } catch (e: Exception) {
             false
         }
     }
+
 
     override suspend fun listLatestExpenses(uid: String, limit: Int): List<Expense> {
         return try {
@@ -118,6 +143,43 @@ class MoneyRepositoryImpl : MoneyRepository {
             throw e   // IMPORTANT: let ViewModel show the error
         }
     }
+
+    override suspend fun getMonthlyCarbonTotalKg(uid: String): Double {
+        val start = startOfCurrentMonthMillis()
+        val end = endOfCurrentMonthMillis()
+
+        val col = FirestorePaths.expenseCol(uid)
+
+        val snap = col
+            .whereGreaterThanOrEqualTo("dateMillis", start)
+            .whereLessThanOrEqualTo("dateMillis", end)
+            .get()
+            .await()
+
+        var total = 0.0
+        for (doc in snap.documents) {
+            val v = doc.getDouble("co2eKg")
+            if (v != null) total += v
+        }
+        return total
+    }
+
+    override suspend fun listExpensesInRangeExclusive(
+        uid: String,
+        startMillis: Long,
+        endExclusiveMillis: Long
+    ): List<Expense> {
+        val col = FirestorePaths.expenseCol(uid)
+        val snap = col
+            .whereGreaterThanOrEqualTo("dateMillis", startMillis)
+            .whereLessThan("dateMillis", endExclusiveMillis)   // ✅ exclusive end
+            .get()
+            .await()
+
+        return snap.documents.mapNotNull { it.toObject(Expense::class.java) }
+    }
+
+
 
 
 

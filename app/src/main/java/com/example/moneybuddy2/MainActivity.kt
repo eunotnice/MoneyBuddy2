@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.moneybuddy2.ui.theme.MoneyBuddy2Theme
 import androidx.navigation.compose.rememberNavController
-import com.example.moneybuddy2.ui.navigation.NavGraph
+import com.example.moneybuddy2.ui.navigation.AppNavGraph
 import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.theme.MoneyBuddy2Theme
 import com.google.firebase.auth.FirebaseAuth
@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
                     Routes.LOGIN
                 }
 
-                NavGraph(
+                AppNavGraph(
                     navController = navController,
                     startDestination = start
                 )

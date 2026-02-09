@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.moneybuddy2"
-        minSdk = 26
+        minSdk = 28
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -91,6 +91,6 @@ dependencies {
 
     implementation("androidx.compose.material:material-icons-extended")
 
-
+   // implementation("com.github.fracassi-marco:JetChart:1.4.3")
 
 }

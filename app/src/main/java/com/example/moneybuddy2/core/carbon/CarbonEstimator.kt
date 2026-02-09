@@ -50,7 +50,7 @@ class CarbonEstimator(
          * Rule 2: Electricity bill
          * ========================= */
         val looksLikeElectricity =
-            cat.contains("utilities") ||
+            cat.contains("bills") ||
                     cat.contains("electric") ||
                     m.contains("tnb") ||
                     d.contains("electric")

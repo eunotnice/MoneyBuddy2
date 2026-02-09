@@ -47,7 +47,7 @@ fun ReceiptPickScreen(
 
     val vm: OcrViewModel = viewModel(
         viewModelStoreOwner = parentEntry,
-        factory = remember(repo) { OcrViewModelFactory(repo, carbonEstimator) }
+        factory = remember(repo) { OcrViewModelFactory(repo) }
     )
 
 

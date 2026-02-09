@@ -15,5 +15,8 @@ interface MoneyRepository {
 
     suspend fun getUserProfile(uid: String): UserProfile?
     suspend fun listExpensesInRange(uid: String, startMillis: Long, endMillis: Long): List<Expense>
+    suspend fun listExpensesInRangeExclusive(uid: String, startMillis: Long, endExclusiveMillis: Long): List<Expense>
+
+    suspend fun getMonthlyCarbonTotalKg(uid: String): Double
 
 }

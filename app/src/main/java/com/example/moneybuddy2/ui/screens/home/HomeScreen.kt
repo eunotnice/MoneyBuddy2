@@ -1,4 +1,5 @@
 package com.example.moneybuddy2.ui.screens.home
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,43 +40,34 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// --- NEW: Define the items for the bottom navigation bar ---
-sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
-    object Profile : BottomNavItem("profile", Icons.Default.Person, "Profile")
-    object Settings : BottomNavItem("settings", Icons.Default.Settings, "Settings")
-    object Receipt : BottomNavItem("receipt", Icons.Default.Receipt, "Receipt")
-    object Chat : BottomNavItem("chat", Icons.Default.Chat, "Chat")
-}
-
-// "Smart" composable remains mostly the same
 @Composable
 fun HomeScreen(
+    vm: HomeViewModel,
     onOpenSettings: () -> Unit,
     onAddExpense: () -> Unit,
     onOpenProfile: () -> Unit,
     onAddReceipt: () -> Unit,
     onOpenChat: () -> Unit,
     onOpenRecommendations: () -> Unit,
-    onOpenBot: () -> Unit
+    onOpenBot: () -> Unit,
+    onOpenAnalytics: () -> Unit
 ) {
-    val repo = remember { AppContainer().repository }
-
-    val vm: HomeViewModel = viewModel(
-        factory = object : ViewModelProvider.Factory {
-            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return HomeViewModel(repo) as T
-            }
-        }
-    )
-
-    val ui by vm.uiState.collectAsState(initial = HomeUiState(loading = true))
+    Column {
+        Text("### HOME SCREEN (STATEFUL) IS RENDERING ###")
+        // existing content below
+    }
+    val ui by vm.uiState.collectAsState()
 
     LaunchedEffect(Unit) { vm.loadHome() }
 
     LaunchedEffect(ui.needsProfileSetup) {
         if (ui.needsProfileSetup) onOpenProfile()
     }
+
+    LaunchedEffect(Unit) {
+        Log.d("CARBON_UI", "HomeScreen observing vm hash=${vm.hashCode()}")
+    }
+
 
     HomeScreenContent(
         ui = ui,
@@ -86,8 +78,42 @@ fun HomeScreen(
         onOpenChat = onOpenChat,
         onOpenRecommendations = onOpenRecommendations,
         onDeleteExpense = { expenseId -> vm.deleteExpense(expenseId) },
-        onOpenBot = onOpenBot
+        onOpenBot = onOpenBot,
+        onOpenAnalytics = onOpenAnalytics
     )
+//    val repo = remember { AppContainer().repository }
+//
+//    val vm: HomeViewModel = viewModel(
+//        factory = object : ViewModelProvider.Factory {
+//            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+//                @Suppress("UNCHECKED_CAST")
+//                return HomeViewModel(repo) as T
+//            }
+//        }
+//    )
+//
+//    val ui by vm.uiState.collectAsState()
+//
+//
+//   // val ui by vm.uiState.collectAsState(initial = HomeUiState(loading = true))
+//
+//    LaunchedEffect(Unit) { vm.loadHome() }
+//
+//    LaunchedEffect(ui.needsProfileSetup) {
+//        if (ui.needsProfileSetup) onOpenProfile()
+//    }
+//
+//    HomeScreenContent(
+//        ui = ui,
+//        onOpenSettings = onOpenSettings,
+//        onAddExpense = onAddExpense,
+//        onOpenProfile = onOpenProfile,
+//        onAddReceipt = onAddReceipt,
+//        onOpenChat = onOpenChat,
+//        onOpenRecommendations = onOpenRecommendations,
+//        onDeleteExpense = { expenseId -> vm.deleteExpense(expenseId) },
+//        onOpenBot = onOpenBot
+//    )
 }
 
 // "Stateless" UI composable with the updated Scaffold
@@ -102,51 +128,57 @@ fun HomeScreenContent(
     onOpenChat: () -> Unit,
     onOpenRecommendations: () -> Unit,
     onDeleteExpense: (String) -> Unit,
-    onOpenBot: () -> Unit
+    onOpenBot: () -> Unit,
+    onOpenAnalytics: () -> Unit
 ) {
     // --- NEW: List of items for the navigation bar ---
-    val bottomNavItems = listOf(
-        BottomNavItem.Profile,
-        BottomNavItem.Settings,
-        BottomNavItem.Receipt,
-        BottomNavItem.Chat
-    )
+//    val bottomNavItems = listOf(
+//        BottomNavItem.Home,
+//        BottomNavItem.Profile,
+//        BottomNavItem.Settings,
+//        BottomNavItem.Receipt,
+//        BottomNavItem.Chat
+//    )
+    Text("### HOME SCREEN CONTENT IS RENDERING ###")
 
     Scaffold(
+
+
         topBar = {
             TopAppBar(
                 title = { Text("MoneyBuddy") },
                 // --- MODIFIED: Top bar actions are simplified ---
                 actions = {
-                    Button(onClick = onOpenRecommendations) {
-                        Text("Recommendations")
-                    }
-                    Button(onClick = onOpenBot) {
-                        Text("Chat with SBH")
+                    Button(
+                        onClick = onOpenAnalytics
+                    ) {
+                        Text("View analytics")
                     }
                 }
+
             )
         },
         // --- MODIFIED: Add the BottomAppBar ---
-        bottomBar = {
-            NavigationBar {
-                bottomNavItems.forEach { item ->
-                    NavigationBarItem(
-                        selected = false, // In a real app, you'd track the current screen
-                        onClick = {
-                            when (item) {
-                                BottomNavItem.Profile -> onOpenProfile()
-                                BottomNavItem.Settings -> onOpenSettings()
-                                BottomNavItem.Receipt -> onAddReceipt()
-                                BottomNavItem.Chat -> onOpenChat()
-                            }
-                        },
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) }
-                    )
-                }
-            }
-        },
+//        bottomBar = {
+//            NavigationBar {
+//                bottomNavItems.forEach { item ->
+//                    NavigationBarItem(
+//                        selected = false, // In a real app, you'd track the current screen
+//                        onClick = {
+//                            when (item) {
+//                                BottomNavItem.Home -> BottomNavItem.Home
+//                                BottomNavItem.Chat -> onOpenChat()
+//                                BottomNavItem.Receipt -> onAddReceipt()
+//                                BottomNavItem.Profile -> onOpenProfile()
+//                                BottomNavItem.Settings -> onOpenSettings()
+//                            }
+//                        },
+//                        icon = { Icon(item.icon, contentDescription = item.label) },
+//                        label = { Text(item.label) }
+//                    )
+//                }
+//            }
+//        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddExpense) { Text("+") }
         }
@@ -172,56 +204,64 @@ fun HomeScreenContent(
 
             // Budget card (with progress)
             Card {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("This month spending", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "Total: MYR %.2f".format(ui.monthTotal),
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-
-                    val budget = ui.profile?.monthlyBudget ?: 0.0
-                    if (budget > 0.0) {
-                        Text("Budget: MYR %.2f".format(budget))
-                        LinearProgressIndicator(
-                            progress = { ui.budgetUsedRatio.toFloat().coerceIn(0f, 1f) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        if (ui.showBudgetWarning) {
-                            Text(
-                                "Budget alert: ${(ui.budgetUsedRatio * 100).toInt()}% used",
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    } else {
-                        Text("Budget not set yet. Please complete your profile.")
-                    }
-                }
+//                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+//                    Text("This month spending", style = MaterialTheme.typography.titleMedium)
+//                    Text(
+//                        "Total: MYR %.2f".format(ui.monthTotal),
+//                        style = MaterialTheme.typography.headlineSmall
+//                    )
+//
+//                    val budget = ui.profile?.monthlyBudget ?: 0.0
+//                    if (budget > 0.0) {
+//                        Text("Budget: MYR %.2f".format(budget))
+//                        LinearProgressIndicator(
+//                            progress = { ui.budgetUsedRatio.toFloat().coerceIn(0f, 1f) },
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//                        if (ui.showBudgetWarning) {
+//                            Text(
+//                                "Budget alert: ${(ui.budgetUsedRatio * 100).toInt()}% used",
+//                                color = MaterialTheme.colorScheme.error
+//                            )
+//                        }
+//                    } else {
+//                        Text("Budget not set yet. Please complete your profile.")
+//                    }
+//                }
             }
 
             // Category breakdown card (this month)
-            Card {
-                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        "Category breakdown (this month)",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (ui.monthCategoryTotals.isEmpty()) {
-                        Text("No expenses in this month yet.")
-                    } else {
-                        ui.monthCategoryTotals.forEach { (cat, total) ->
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(cat)
-                                Text("MYR %.2f".format(total))
-                            }
-                        }
-                    }
-                }
-            }
+//            Card {
+//                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+//                    Text(
+//                        "Category breakdown (this month)",
+//                        style = MaterialTheme.typography.titleMedium
+//                    )
+//                    if (ui.monthCategoryTotals.isEmpty()) {
+//                        Text("No expenses in this month yet.")
+//                    } else {
+//                        ui.monthCategoryTotals.forEach { (cat, total) ->
+//                            Row(
+//                                Modifier.fillMaxWidth(),
+//                                horizontalArrangement = Arrangement.SpaceBetween
+//                            ) {
+//                                Text(cat)
+//                                Text("MYR %.2f".format(total))
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
-            Text("Latest expenses", style = MaterialTheme.typography.titleMedium)
+
+            Text(
+                text = when {
+                    ui.carbonLoading -> "This month’s carbon: calculating…"
+                    ui.monthlyCarbonKg != null ->
+                        "This month’s carbon: %.2f kgCO₂e".format(ui.monthlyCarbonKg)
+                    else -> "This month’s carbon: —"
+                }
+            )
             val zoneId = ZoneId.systemDefault() // or ZoneId.of("Asia/Kuala_Lumpur")
             val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
 
@@ -296,50 +336,50 @@ fun HomeScreenContent(
 
 
             // Preview functions remain the same but will now show the new bottom bar
-@Preview(showBackground = true, name = "Home Screen Preview")
-@Composable
-fun HomeScreenPreview() {
-    HomeScreenContent(
-        ui = HomeUiState(
-            loading = false,
-            profile = UserProfile(monthlyBudget = 2500.0),
-            monthTotal = 1850.55,
-            latestExpenses = listOf(
-                Expense(id = "1", amount = 12.50, merchant = "Starbucks", category = "Food"),
-                Expense(id = "2", amount = 85.00, merchant = "Shell", category = "Transport"),
-                Expense(id = "3", amount = 230.75, merchant = "Village Grocer", category = "Groceries")
-            ),
-            monthCategoryTotals = listOf("Food" to 700.0, "Transport" to 450.0, "Groceries" to 700.55),
-            budgetUsedRatio = 1850.55 / 2500.0,
-            showBudgetWarning = true
-        ),
-        onOpenSettings = {},
-        onAddExpense = {},
-        onOpenProfile = {},
-        onAddReceipt = {},
-        onOpenChat = {},
-        onOpenRecommendations = {},
-        onDeleteExpense = {},
-        onOpenBot = {}
-    )
-}
-
-@Preview(showBackground = true, name = "Home Screen Loading State")
-@Composable
-fun HomeScreenLoadingPreview() {
-    HomeScreenContent(
-        ui = HomeUiState(loading = true),
-        onOpenSettings = {},
-        onAddExpense = {},
-        onOpenProfile = {},
-        onAddReceipt = {},
-        onOpenChat = {},
-        onOpenRecommendations = {},
-        onDeleteExpense = {},
-        onOpenBot = {}
-    )
-}
-
+//@Preview(showBackground = true, name = "Home Screen Preview")
+//@Composable
+//fun HomeScreenPreview() {
+//    HomeScreenContent(
+//        ui = HomeUiState(
+//            loading = false,
+//            profile = UserProfile(monthlyBudget = 2500.0),
+//            monthTotal = 1850.55,
+//            latestExpenses = listOf(
+//                Expense(id = "1", amount = 12.50, merchant = "Starbucks", category = "Food"),
+//                Expense(id = "2", amount = 85.00, merchant = "Shell", category = "Transport"),
+//                Expense(id = "3", amount = 230.75, merchant = "Village Grocer", category = "Groceries")
+//            ),
+//            monthCategoryTotals = listOf("Food" to 700.0, "Transport" to 450.0, "Groceries" to 700.55),
+//            budgetUsedRatio = 1850.55 / 2500.0,
+//            showBudgetWarning = true
+//        ),
+//        onOpenSettings = {},
+//        onAddExpense = {},
+//        onOpenProfile = {},
+//        onAddReceipt = {},
+//        onOpenChat = {},
+//        onOpenRecommendations = {},
+//        onDeleteExpense = {},
+//        onOpenBot = {}
+//    )
+//}
+//
+//@Preview(showBackground = true, name = "Home Screen Loading State")
+//@Composable
+//fun HomeScreenLoadingPreview() {
+//    HomeScreenContent(
+//        ui = HomeUiState(loading = true),
+//        onOpenSettings = {},
+//        onAddExpense = {},
+//        onOpenProfile = {},
+//        onAddReceipt = {},
+//        onOpenChat = {},
+//        onOpenRecommendations = {},
+//        onDeleteExpense = {},
+//        onOpenBot = {}
+//    )
+//}
+//
 @Composable
 fun IncomeExpenseSummaryCard(
     income: Double,
@@ -369,21 +409,37 @@ fun IncomeExpenseSummaryCard(
                 .fillMaxWidth()
                 .height(92.dp)
         ) {
+            val incomeMore = income>expenses
+            val expenseMore = expenses > income
+
+            val incomeWeight = when {
+                incomeMore -> 0.65f
+                expenseMore -> 0.35f
+                else -> 0.5f
+            }
+
+            val expenseWeight = 1f - incomeWeight
+
             // Background split (Income | Expenses)
             Row(Modifier.fillMaxSize()) {
+
                 // Left: Income
                 Box(
                     modifier = Modifier
                         .weight(incomeWeight)
                         .fillMaxHeight()
-                        .background(Color(0xFF5A2D82)) // purple
+                        .background(Color(0xFF5A2D82))
                         .padding(14.dp)
                 ) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.fillMaxHeight()
                     ) {
-                        Text("Income", color = Color.White.copy(alpha = 0.9f), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            "Income",
+                            color = Color.White.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         Text(
                             fmt.format(income),
                             color = Color.White,
@@ -420,7 +476,11 @@ fun IncomeExpenseSummaryCard(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.fillMaxHeight().fillMaxWidth()
                     ) {
-                        Text("Expenses", color = Color.White.copy(alpha = 0.95f), style = MaterialTheme.typography.labelLarge)
+                        Text(
+                            "Expenses",
+                            color = Color.White.copy(alpha = 0.95f),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                         Text(
                             fmt.format(expenses),
                             color = Color.White,
@@ -440,6 +500,7 @@ fun IncomeExpenseSummaryCard(
                     }
                 }
             }
+
 
             // Center overlay "Balance" pill
             val pillShape = RoundedCornerShape(16.dp)
@@ -473,16 +534,16 @@ fun IncomeExpenseSummaryCard(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun PreviewIncomeExpenseSummaryCard() {
-    MaterialTheme {
-        Column(Modifier.padding(16.dp)) {
-            IncomeExpenseSummaryCard(
-                income = 2500.00,
-                expenses = 1200.00,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun PreviewIncomeExpenseSummaryCard() {
+//    MaterialTheme {
+//        Column(Modifier.padding(16.dp)) {
+//            IncomeExpenseSummaryCard(
+//                income = 2500.00,
+//                expenses = 1200.00,
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//        }
+//    }
+//}

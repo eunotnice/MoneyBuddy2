@@ -6,6 +6,7 @@ import com.example.moneybuddy2.core.carbon.EmissionFactors
 import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.carbon.loadEmissionFactors
 import com.example.moneybuddy2.core.recommendation.Recommendation
+import com.example.moneybuddy2.data.model.CarbonFactors
 import com.example.moneybuddy2.data.model.FaqItem
 import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.data.repository.MoneyRepository
@@ -19,7 +20,21 @@ import org.json.JSONArray
 
 
 class AppContainer {
-    val repository: MoneyRepository = MoneyRepositoryImpl()
+    private val carbonEstimator: CarbonEstimator by lazy {
+        CarbonEstimator(
+            factors = CarbonFactors(
+                version = "2026-02",
+                electricityKgPerKwh = 0.58,
+                petrolKgPerLitre = 2.31
+            ),
+            petrolPriceRmPerLitre = 2.05,
+            electricityRmPerKwh = 0.50 // optional; can be null if not used
+        )
+    }
+
+    val repository: MoneyRepository by lazy {
+        MoneyRepositoryImpl(carbonEstimator)
+    }
     // Shared OCR state between pick + confirm screens
     //val ocrViewModel: OcrViewModel by lazy { OcrViewModel(repository) }
     val chatViewModel: ChatViewModel by lazy { ChatViewModel(repository) }
@@ -57,6 +72,7 @@ class AppContainer {
         val faqRepo = FaqRepository(faqs)
         return ChatbotViewModel(faqRepo)
     }
+
 
 
 }

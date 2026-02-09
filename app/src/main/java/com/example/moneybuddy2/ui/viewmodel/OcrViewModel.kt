@@ -4,7 +4,6 @@ import android.util.Log
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.ocr.ParsedReceipt
 import com.example.moneybuddy2.core.ocr.ReceiptParser
 import com.example.moneybuddy2.data.model.Expense
@@ -37,8 +36,7 @@ data class OcrUiState(
 )
 
 class OcrViewModel (
-    private val repo: MoneyRepository,
-    private val carbonEstimator: CarbonEstimator
+    private val repo: MoneyRepository
 ) : ViewModel() {
 
    // private val openAi = OpenAiReceiptService()
@@ -135,14 +133,6 @@ class OcrViewModel (
         _ui.value = _ui.value.copy(loading = true, error = null)
 
         viewModelScope.launch {
-            // ✅ compute carbon estimate BEFORE saving
-            val est = carbonEstimator.estimate(
-                merchant = merchant,
-                amountRm = amount,
-                category = category,
-                description = description
-            )
-
             val expense = Expense(
                 merchant = merchant.trim(),
                 amount = amount,
@@ -150,13 +140,7 @@ class OcrViewModel (
                 description = description.trim(),
                 dateMillis = dateMillis,
                 source = "ocr",
-                rawText = raw,
-
-                // ✅ store carbon fields (stable history)
-                co2eKg = est?.kgCo2e,
-                co2eRuleId = est?.ruleId ?: "none",
-                co2eFactorVersion = est?.factorVersion ?: "unknown",
-                co2eAssumptions = est?.assumptions ?: emptyMap()
+                rawText = raw
             )
 
             val ok = repo.addExpense(user.uid, expense)
@@ -164,7 +148,6 @@ class OcrViewModel (
             if (ok) onSaved()
         }
     }
-
 
     fun reset(){
         _ui.value = OcrUiState()

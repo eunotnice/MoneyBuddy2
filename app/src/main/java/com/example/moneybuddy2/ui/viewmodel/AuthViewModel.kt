@@ -1,9 +1,12 @@
 package com.example.moneybuddy2.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.data.remote.FirebaseProvider
+import com.example.moneybuddy2.data.remote.FirestorePaths
 import com.example.moneybuddy2.data.repository.MoneyRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,8 +33,13 @@ class AuthViewModel (
                     return@addOnSuccessListener
                 }
                 viewModelScope.launch{
+                    val u = FirebaseAuth.getInstance().currentUser
+                    Log.d("AUTH", "uid=${u?.uid}, email=${u?.email}")
+                    Log.d("FS", "userDoc=${FirestorePaths.userDoc(user.uid).path}")
+
+
                     val ok = repo.ensureUserProfile(user.uid, user.email)
-                    _uiState.value = if (ok) AuthUiState() else AuthUiState(error = "Failed to create user profile in Firestore")
+                    _uiState.value = if (ok) AuthUiState() else AuthUiState(error = "Failed to sign in")
                     if (ok) onSuccess()
                 }
             }
