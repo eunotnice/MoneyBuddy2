@@ -15,8 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
+import com.example.moneybuddy2.MoneyBuddyApp
+import com.example.moneybuddy2.core.carbon.CarbonEstimator
+import com.example.moneybuddy2.data.model.CarbonFactors
 import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
+import com.example.moneybuddy2.ui.viewmodel.OcrViewModelFactory
 import createReceiptImageUri
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,11 +31,15 @@ fun ReceiptScanScreen(
     onBack: () -> Unit,
     onGoToConfirm: () -> Unit
 ) {
-    // IMPORTANT: get the same VM used by pick/confirm screens
-    val vm: OcrViewModel = androidx.lifecycle.viewmodel.compose.viewModel(parentEntry)
-
+    val app = (LocalContext.current.applicationContext as MoneyBuddyApp)
+    val repo = app.container.repository
+    val vm: OcrViewModel = viewModel(
+        viewModelStoreOwner = parentEntry,
+        factory = remember(repo) { OcrViewModelFactory(repo) }
+    )
+    val ui by vm.ui.collectAsState()
     val context = LocalContext.current
-    val ui by vm.ui.collectAsStateWithLifecycle()
+
 
     var pendingUri by remember { mutableStateOf<Uri?>(null) }
 
