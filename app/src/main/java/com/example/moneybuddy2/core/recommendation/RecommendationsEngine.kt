@@ -33,8 +33,11 @@ class RecommendationsEngine(
         url = "https://ringgitplus.com/en/fixed-deposit/"
     )
 
-    fun buildBudgetPlan(profile: UserProfile): BudgetPlan {
-        val income = max(0.0, profile.monthlyIncome)
+    fun buildBudgetPlan(profile: UserProfile, monthIncome: List<Income>): BudgetPlan {
+        val income = monthIncome
+            .sumOf{it.amount.coerceAtLeast(0.0)}
+            .coerceAtLeast(0.0)
+
         val needs = income * 0.50
         val wants = income * 0.30
         val savings = income * 0.20
@@ -69,9 +72,10 @@ class RecommendationsEngine(
 
     fun generate(
         profile: UserProfile,
+        monthIncome: List<Income>,
         monthExpense: List<Expense>
     ): Pair<BudgetPlan, List<RecommendationCard>> {
-        val plan = buildBudgetPlan(profile)
+        val plan = buildBudgetPlan(profile, monthIncome)
         val spend = summarizeSpending(monthExpense)
         val cards = mutableListOf<RecommendationCard>()
 

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moneybuddy2.data.model.Expense
+import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.model.UserProfile
 import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.HomeUiState
@@ -48,6 +49,20 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
+sealed class TransactionItem{
+    abstract val id: String
+    abstract val dataMillis: Long
+
+    data class ExpenseItem(val expense:Expense): TransactionItem(){
+        override val id = expense.id
+        override val dataMillis = expense.dateMillis
+    }
+
+    data class IncomeItem(val income:Income): TransactionItem(){
+        override val id = income.id
+        override val dataMillis = income.dateMillis
+    }
+}
 @Composable
 fun HomeScreen(
     vm: HomeViewModel,
@@ -102,8 +117,6 @@ fun HomeScreenContent(
     onOpenAnalytics: () -> Unit
 ) {
 
-    Text("### HOME SCREEN CONTENT IS RENDERING ###")
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -118,23 +131,28 @@ fun HomeScreenContent(
                         )
                     }
                 }
-
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAddExpense) { Text("+") }
-        }
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = onAddExpense) { Text("+") }
+//        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(12.dp)
+                .padding(top=5.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (ui.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             if (ui.error != null) Text(ui.error!!, color = MaterialTheme.colorScheme.error)
             //val income = ui.profile?.monthlyIncome ?: 0.0
+
+            MonthYearDropdown(
+                selected = ui.selectedMonth,
+                onSelect = onMonthSelected
+            )
 
             IncomeExpenseSummaryCard(
                 income = ui.incomeTotal,
@@ -144,10 +162,6 @@ fun HomeScreenContent(
                 onExpenseDetails = { /* navigate to expenses list */ }
             )
 
-            MonthYearDropdown(
-                selected = ui.selectedMonth,
-                onSelect = onMonthSelected
-            )
 
             Text(
                 text = when {
@@ -160,14 +174,31 @@ fun HomeScreenContent(
             val zoneId = ZoneId.systemDefault() // or ZoneId.of("Asia/Kuala_Lumpur")
             val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
 
-            val groupedByDate: List<Pair<LocalDate, List<Expense>>> = remember(ui.latestExpenses) {
-                ui.latestExpenses
-                    .groupBy { e ->
-                        Instant.ofEpochMilli(e.dateMillis).atZone(zoneId).toLocalDate()
+//            val groupedByDate: List<Pair<LocalDate, List<Expense>>> = remember(ui.latestExpenses) {
+//                ui.latestExpenses
+//                    .groupBy { e ->
+//                        Instant.ofEpochMilli(e.dateMillis).atZone(zoneId).toLocalDate()
+//                    }
+//                    .toList()
+//                    .sortedByDescending { (date, _) -> date }
+//            }
+
+            val groupedByDate: List<Pair<LocalDate, List<TransactionItem>>> = remember(ui.latestExpenses, ui.latestIncome) {
+                val combinedList = buildList<TransactionItem>{
+                    addAll(ui.latestExpenses.map {TransactionItem.ExpenseItem(it)})
+                    addAll(ui.latestIncome.map {TransactionItem.IncomeItem(it)})
+                }
+
+                combinedList
+                    .groupBy{ item ->
+                        Instant.ofEpochMilli(item.dataMillis).atZone(zoneId).toLocalDate()
                     }
                     .toList()
                     .sortedByDescending { (date, _) -> date }
+
             }
+
+
 
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
@@ -194,32 +225,12 @@ fun HomeScreenContent(
                         items = expensesOnDate,
                         key = { it.id }
                     ) { e ->
-                        Card {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        e.merchant.ifBlank { "(No merchant)" },
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text("MYR %.2f • %s".format(e.amount, e.category))
-                                    if (e.description.isNotBlank()) {
-                                        Text(
-                                            e.description,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
-                                    Text("RM %.2f".format(e.amount))
-                                    e.co2eKg?.let {
-                                        Text("≈ %.2f kgCO₂e".format(it), style = MaterialTheme.typography.bodySmall)
-                                    }
-
-                                }
-                                TextButton(onClick = { onDeleteExpense(e.id) }) { Text("Delete") }
+                        when(e) {
+                            is TransactionItem.ExpenseItem -> {
+                                ExpenseCard(e.expense)
+                            }
+                            is TransactionItem.IncomeItem -> {
+                                IncomeCard(e.income)
                             }
                         }
                     }
@@ -471,16 +482,72 @@ fun MonthYearDropdown(
         }
     }
 }
-//@Preview(showBackground = true)
-//@Composable
-//private fun PreviewIncomeExpenseSummaryCard() {
-//    MaterialTheme {
-//        Column(Modifier.padding(16.dp)) {
-//            IncomeExpenseSummaryCard(
-//                income = 2500.00,
-//                expenses = 1200.00,
-//                modifier = Modifier.fillMaxWidth()
-//            )
-//        }
-//    }
-//}
+
+@Composable
+fun ExpenseCard(e: Expense) {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Column(Modifier.weight(1f)) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(e.category, style = MaterialTheme.typography.titleMedium)
+                    Text("RM %.2f".format(e.amount),
+                        color = Color(0xFFC62828))
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(e.merchant.ifBlank { "" })
+                    e.co2eKg?.let {
+                        Text("≈ %.2f kgCO₂e".format(it), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+
+                Text(e.description.ifBlank { "" }, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun IncomeCard(i: Income) {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Column(Modifier.weight(1f)) {
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(i.category, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "RM %.2f".format(i.amount),
+                        color = Color(0xFF2E7D32)
+                    )
+                }
+                Text(i.description.ifBlank { "" }, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}

@@ -36,6 +36,7 @@ import com.example.moneybuddy2.ui.screens.home.HomeScreen
 import com.example.moneybuddy2.ui.screens.settings.SettingsScreen
 import com.example.moneybuddy2.ui.screens.expense.ManualAddExpenseScreen
 import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
+import com.example.moneybuddy2.ui.screens.ocr.ReceiptScanScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
 import com.example.moneybuddy2.ui.screens.chat.ChatScreen
@@ -220,6 +221,18 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 startDestination = Routes.RECEIPT_PICK,
                 route = Routes.RECEIPT_GRAPH
             ) {
+                composable(Routes.RECEIPT_SCAN ) { entry ->
+
+                    val parentEntry = remember(entry) {
+                        navController.getBackStackEntry(Routes.RECEIPT_GRAPH)
+                    }
+
+                    ReceiptScanScreen(
+                        parentEntry = parentEntry,
+                        onBack = { navController.popBackStack() },
+                        onGoToConfirm = { navController.navigate(Routes.RECEIPT_CONFIRM) }
+                    )
+                }
 
                 composable(Routes.RECEIPT_PICK) { entry ->
 
@@ -326,7 +339,7 @@ fun AppBottomBar(navController: NavHostController) {
                 },
                 onScanCamera = {
                     showReceiptSheet = false
-                    navController.navigate(Routes.RECEIPT_PICK)
+                    navController.navigate(Routes.RECEIPT_SCAN)
                 },
                 onUploadGallery = {
                     showReceiptSheet = false

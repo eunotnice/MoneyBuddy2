@@ -26,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -78,17 +79,8 @@ fun AnalyticsScreen(vm: AnalyticsViewModel, onBack: () -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ){
-                Card(
-                    modifier = Modifier.weight(1.3f)
-                ) {
-                    CategoryPieCard(ui.categoryTotals)
-                }
-
-                Card(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    SpendingOverviewCard(ui)
-                }
+                CategoryPieCard(ui.categoryTotals)
+                SpendingOverviewCard(ui)
             }
 
             CategoryRankList(ui.categoryTotals)
@@ -106,7 +98,11 @@ fun AnalyticsScreen(vm: AnalyticsViewModel, onBack: () -> Unit) {
 
 @Composable
 fun SpendingOverviewCard(ui: AnalyticsUiState) {
-    Card {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ){
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Spending overview", style = MaterialTheme.typography.titleMedium)
             Text("Total: RM %.2f".format(ui.thisMonthTotal), style = MaterialTheme.typography.headlineSmall)
@@ -138,14 +134,14 @@ fun PieChartCanvas(
     }
 
     val palette: List<Color> = listOf(
-        MaterialTheme.colorScheme.primary,
-        MaterialTheme.colorScheme.secondary,
-        MaterialTheme.colorScheme.tertiary,
-        MaterialTheme.colorScheme.error,
-        MaterialTheme.colorScheme.primaryContainer,
-        MaterialTheme.colorScheme.secondaryContainer,
-        MaterialTheme.colorScheme.tertiaryContainer,
-        MaterialTheme.colorScheme.surfaceVariant
+        Color(0xFFFFC1CC), // pastel pink
+        Color(0xFFFFE0B2), // pastel peach
+        Color(0xFFFFF9C4), // pastel yellow
+        Color(0xFFC8E6C9), // pastel green
+        Color(0xFFB3E5FC), // pastel blue
+        Color(0xFFD1C4E9), // pastel purple
+        Color(0xFFFFCDD2), // soft rose
+        Color(0xFFB2DFDB)  // pastel teal
     )
 
     Canvas(
@@ -175,7 +171,11 @@ fun PieChartCanvas(
 
 @Composable
 fun CategoryPieCard(slices: List<CategorySlice>) {
-    Card {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8F6FD)
+        )
+    ){
         Column(
             Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -199,7 +199,11 @@ fun CategoryPieCard(slices: List<CategorySlice>) {
 
 @Composable
 fun CategoryRankList(slices: List<CategorySlice>) {
-    Card {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF8F6FD)
+        )
+    ){
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Categories (ranked)", style = MaterialTheme.typography.titleMedium)
 
@@ -226,7 +230,10 @@ fun SustainabilityCard(
 ) {
     Card (
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
     ){
         Column(modifier = Modifier
             .padding(12.dp),

@@ -51,7 +51,7 @@ class RecommendationViewModel(
                 val (start, end) = currentMonthRangeMillis()
                 val expenses = repo.listExpensesInRange(user.uid, start, end)
                 val income = repo.listIncomeInRange(user.uid, start, end)
-                val (plan, cards) = engine.generate(profile, expenses)
+                val (plan, cards) = engine.generate(profile, income, expenses)
 
                 _ui.value = _ui.value.copy(
                     loading = false,

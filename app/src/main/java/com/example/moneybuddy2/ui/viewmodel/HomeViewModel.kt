@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.core.util.DateUtils
 import com.example.moneybuddy2.core.util.DateUtils.monthRangeMillis
 import com.example.moneybuddy2.data.model.Expense
+import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.model.UserProfile
 import com.example.moneybuddy2.data.remote.FirebaseProvider
 import com.example.moneybuddy2.data.repository.MoneyRepository
@@ -21,6 +22,7 @@ data class HomeUiState (
     val profile: UserProfile? = null,
     val incomeTotal: Double = 0.0,
     val monthTotal: Double = 0.0,
+    val latestIncome: List<Income> = emptyList(),
     val latestExpenses: List<Expense> = emptyList(),
     val monthCategoryTotals: List<Pair<String, Double>> = emptyList(),
     val budgetUsedRatio: Double = 0.0,
@@ -121,7 +123,10 @@ class HomeViewModel (
                     .mapValues { (_, items) -> items.sumOf { it.amount } }
                     .toList()
                     .sortedByDescending { it.second }
-                val latest = monthExpenses
+                val latestIncome = monthIncome
+                    .sortedByDescending { it.dateMillis }
+                    .take(100)
+                val latestExpenses = monthExpenses
                     .sortedByDescending { it.dateMillis }
                     .take(100)
                 val carbon = repo.getCarbonTotalKgInRange(user.uid, start, end)
@@ -141,7 +146,8 @@ class HomeViewModel (
                         error = null,
                         profile = profile,
                         monthTotal = monthTotal,
-                        latestExpenses = latest,
+                        latestIncome = latestIncome,
+                        latestExpenses = latestExpenses,
                         monthCategoryTotals = categoryTotals,
                         budgetUsedRatio = ratio,
                         showBudgetWarning = warn,

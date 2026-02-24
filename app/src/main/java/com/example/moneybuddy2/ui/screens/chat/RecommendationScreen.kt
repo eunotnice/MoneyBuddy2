@@ -8,7 +8,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.moneybuddy2.data.model.RecommendationCard
 import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
@@ -59,8 +61,10 @@ fun RecommendationScreen(
                 item {
                     val plan = ui.plan
                     if (plan != null) {
-                        Card {
-                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Card (modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                        )){
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text("Budget Plan (${plan.ruleLabel})", style = MaterialTheme.typography.titleMedium)
                                 Text("Income: ${plan.income}")
                                 Text("Needs ≤ 50%: ${plan.needsLimit}")
@@ -92,7 +96,11 @@ private fun RecommendationCardView(
     card: RecommendationCard,
     onOpenUrl: (String) -> Unit
 ) {
-    Card {
+    Card (
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        )
+    ){
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(card.title, style = MaterialTheme.typography.titleMedium)
             Text(card.message)
@@ -109,4 +117,5 @@ private fun RecommendationCardView(
         }
     }
 }
+
 
