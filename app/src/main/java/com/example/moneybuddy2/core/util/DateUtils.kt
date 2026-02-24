@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.ZoneId
 
 object DateUtils {
@@ -65,5 +66,10 @@ object DateUtils {
         return cal.get(Calendar.DAY_OF_MONTH)
     }
 
+    fun monthRangeMillis(month: YearMonth, zone: ZoneId = ZoneId.systemDefault()): Pair<Long, Long> {
+        val start = month.atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        val endExclusive = month.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        return start to (endExclusive - 1) // inclusive end
+    }
 
 }

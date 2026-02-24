@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -14,18 +13,24 @@ import androidx.compose.ui.unit.dp
 import java.text.NumberFormat
 import java.util.Locale
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.modifier.modifierLocalOf
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
@@ -37,8 +42,11 @@ import com.example.moneybuddy2.ui.viewmodel.HomeUiState
 import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 import java.time.Instant
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.Month
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 
 @Composable
 fun HomeScreen(
@@ -52,10 +60,7 @@ fun HomeScreen(
     onOpenBot: () -> Unit,
     onOpenAnalytics: () -> Unit
 ) {
-    Column {
-        Text("### HOME SCREEN (STATEFUL) IS RENDERING ###")
-        // existing content below
-    }
+
     val ui by vm.uiState.collectAsState()
 
     LaunchedEffect(Unit) { vm.loadHome() }
@@ -64,13 +69,11 @@ fun HomeScreen(
         if (ui.needsProfileSetup) onOpenProfile()
     }
 
-    LaunchedEffect(Unit) {
-        Log.d("CARBON_UI", "HomeScreen observing vm hash=${vm.hashCode()}")
-    }
-
-
     HomeScreenContent(
         ui = ui,
+        onMonthSelected = { newMonth ->
+            vm.setMonth(newMonth)
+        },
         onOpenSettings = onOpenSettings,
         onAddExpense = onAddExpense,
         onOpenProfile = onOpenProfile,
@@ -81,46 +84,13 @@ fun HomeScreen(
         onOpenBot = onOpenBot,
         onOpenAnalytics = onOpenAnalytics
     )
-//    val repo = remember { AppContainer().repository }
-//
-//    val vm: HomeViewModel = viewModel(
-//        factory = object : ViewModelProvider.Factory {
-//            override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-//                @Suppress("UNCHECKED_CAST")
-//                return HomeViewModel(repo) as T
-//            }
-//        }
-//    )
-//
-//    val ui by vm.uiState.collectAsState()
-//
-//
-//   // val ui by vm.uiState.collectAsState(initial = HomeUiState(loading = true))
-//
-//    LaunchedEffect(Unit) { vm.loadHome() }
-//
-//    LaunchedEffect(ui.needsProfileSetup) {
-//        if (ui.needsProfileSetup) onOpenProfile()
-//    }
-//
-//    HomeScreenContent(
-//        ui = ui,
-//        onOpenSettings = onOpenSettings,
-//        onAddExpense = onAddExpense,
-//        onOpenProfile = onOpenProfile,
-//        onAddReceipt = onAddReceipt,
-//        onOpenChat = onOpenChat,
-//        onOpenRecommendations = onOpenRecommendations,
-//        onDeleteExpense = { expenseId -> vm.deleteExpense(expenseId) },
-//        onOpenBot = onOpenBot
-//    )
 }
 
-// "Stateless" UI composable with the updated Scaffold
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreenContent(
     ui: HomeUiState,
+    onMonthSelected: (YearMonth) -> Unit,
     onOpenSettings: () -> Unit,
     onAddExpense: () -> Unit,
     onOpenProfile: () -> Unit,
@@ -131,54 +101,26 @@ fun HomeScreenContent(
     onOpenBot: () -> Unit,
     onOpenAnalytics: () -> Unit
 ) {
-    // --- NEW: List of items for the navigation bar ---
-//    val bottomNavItems = listOf(
-//        BottomNavItem.Home,
-//        BottomNavItem.Profile,
-//        BottomNavItem.Settings,
-//        BottomNavItem.Receipt,
-//        BottomNavItem.Chat
-//    )
+
     Text("### HOME SCREEN CONTENT IS RENDERING ###")
 
     Scaffold(
-
-
         topBar = {
             TopAppBar(
                 title = { Text("MoneyBuddy") },
-                // --- MODIFIED: Top bar actions are simplified ---
                 actions = {
-                    Button(
+                    IconButton(
                         onClick = onOpenAnalytics
                     ) {
-                        Text("View analytics")
+                        Icon(
+                            imageVector = Icons.Default.Analytics,
+                            contentDescription = ""
+                        )
                     }
                 }
 
             )
         },
-        // --- MODIFIED: Add the BottomAppBar ---
-//        bottomBar = {
-//            NavigationBar {
-//                bottomNavItems.forEach { item ->
-//                    NavigationBarItem(
-//                        selected = false, // In a real app, you'd track the current screen
-//                        onClick = {
-//                            when (item) {
-//                                BottomNavItem.Home -> BottomNavItem.Home
-//                                BottomNavItem.Chat -> onOpenChat()
-//                                BottomNavItem.Receipt -> onAddReceipt()
-//                                BottomNavItem.Profile -> onOpenProfile()
-//                                BottomNavItem.Settings -> onOpenSettings()
-//                            }
-//                        },
-//                        icon = { Icon(item.icon, contentDescription = item.label) },
-//                        label = { Text(item.label) }
-//                    )
-//                }
-//            }
-//        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAddExpense) { Text("+") }
         }
@@ -192,67 +134,20 @@ fun HomeScreenContent(
         ) {
             if (ui.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             if (ui.error != null) Text(ui.error!!, color = MaterialTheme.colorScheme.error)
-            val income = ui.profile?.monthlyIncome ?: 0.0
+            //val income = ui.profile?.monthlyIncome ?: 0.0
 
             IncomeExpenseSummaryCard(
-                income = income,
+                income = ui.incomeTotal,
                 expenses = ui.monthTotal,
                 modifier = Modifier.fillMaxWidth(),
                 onIncomeDetails = { /* navigate to income list */ },
                 onExpenseDetails = { /* navigate to expenses list */ }
             )
 
-            // Budget card (with progress)
-            Card {
-//                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-//                    Text("This month spending", style = MaterialTheme.typography.titleMedium)
-//                    Text(
-//                        "Total: MYR %.2f".format(ui.monthTotal),
-//                        style = MaterialTheme.typography.headlineSmall
-//                    )
-//
-//                    val budget = ui.profile?.monthlyBudget ?: 0.0
-//                    if (budget > 0.0) {
-//                        Text("Budget: MYR %.2f".format(budget))
-//                        LinearProgressIndicator(
-//                            progress = { ui.budgetUsedRatio.toFloat().coerceIn(0f, 1f) },
-//                            modifier = Modifier.fillMaxWidth()
-//                        )
-//                        if (ui.showBudgetWarning) {
-//                            Text(
-//                                "Budget alert: ${(ui.budgetUsedRatio * 100).toInt()}% used",
-//                                color = MaterialTheme.colorScheme.error
-//                            )
-//                        }
-//                    } else {
-//                        Text("Budget not set yet. Please complete your profile.")
-//                    }
-//                }
-            }
-
-            // Category breakdown card (this month)
-//            Card {
-//                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-//                    Text(
-//                        "Category breakdown (this month)",
-//                        style = MaterialTheme.typography.titleMedium
-//                    )
-//                    if (ui.monthCategoryTotals.isEmpty()) {
-//                        Text("No expenses in this month yet.")
-//                    } else {
-//                        ui.monthCategoryTotals.forEach { (cat, total) ->
-//                            Row(
-//                                Modifier.fillMaxWidth(),
-//                                horizontalArrangement = Arrangement.SpaceBetween
-//                            ) {
-//                                Text(cat)
-//                                Text("MYR %.2f".format(total))
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-
+            MonthYearDropdown(
+                selected = ui.selectedMonth,
+                onSelect = onMonthSelected
+            )
 
             Text(
                 text = when {
@@ -334,52 +229,6 @@ fun HomeScreenContent(
     }
 }
 
-
-            // Preview functions remain the same but will now show the new bottom bar
-//@Preview(showBackground = true, name = "Home Screen Preview")
-//@Composable
-//fun HomeScreenPreview() {
-//    HomeScreenContent(
-//        ui = HomeUiState(
-//            loading = false,
-//            profile = UserProfile(monthlyBudget = 2500.0),
-//            monthTotal = 1850.55,
-//            latestExpenses = listOf(
-//                Expense(id = "1", amount = 12.50, merchant = "Starbucks", category = "Food"),
-//                Expense(id = "2", amount = 85.00, merchant = "Shell", category = "Transport"),
-//                Expense(id = "3", amount = 230.75, merchant = "Village Grocer", category = "Groceries")
-//            ),
-//            monthCategoryTotals = listOf("Food" to 700.0, "Transport" to 450.0, "Groceries" to 700.55),
-//            budgetUsedRatio = 1850.55 / 2500.0,
-//            showBudgetWarning = true
-//        ),
-//        onOpenSettings = {},
-//        onAddExpense = {},
-//        onOpenProfile = {},
-//        onAddReceipt = {},
-//        onOpenChat = {},
-//        onOpenRecommendations = {},
-//        onDeleteExpense = {},
-//        onOpenBot = {}
-//    )
-//}
-//
-//@Preview(showBackground = true, name = "Home Screen Loading State")
-//@Composable
-//fun HomeScreenLoadingPreview() {
-//    HomeScreenContent(
-//        ui = HomeUiState(loading = true),
-//        onOpenSettings = {},
-//        onAddExpense = {},
-//        onOpenProfile = {},
-//        onAddReceipt = {},
-//        onOpenChat = {},
-//        onOpenRecommendations = {},
-//        onDeleteExpense = {},
-//        onOpenBot = {}
-//    )
-//}
-//
 @Composable
 fun IncomeExpenseSummaryCard(
     income: Double,
@@ -534,6 +383,94 @@ fun IncomeExpenseSummaryCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MonthYearDropdown(
+    selected: YearMonth,
+    onSelect: (YearMonth) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var displayYear by remember { mutableIntStateOf(selected.year) }
+    val now = YearMonth.now()
+    val formatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            value = selected.format(formatter),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Month") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Year row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { displayYear -= 1 }) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Previous year")
+                    }
+
+                    Text(displayYear.toString(), style = MaterialTheme.typography.titleMedium)
+
+                    IconButton(
+                        onClick = { displayYear += 1 },
+                        enabled = displayYear < now.year
+                    ) {
+                        Icon(Icons.Default.ChevronRight, contentDescription = "Next year")
+                    }
+                }
+
+                // Month grid (3 columns)
+                Month.values().asList().chunked(3).forEach { rowMonths ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        rowMonths.forEach { month ->
+                            val ym = YearMonth.of(displayYear, month)
+                            val enabled = ym <= now
+
+                            AssistChip(
+                                onClick = {
+                                    onSelect(ym)
+                                    expanded = false
+                                },
+                                enabled = enabled,
+                                label = {
+                                    Text(
+                                        month.getDisplayName(
+                                            TextStyle.SHORT,
+                                            Locale.getDefault()
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 //@Preview(showBackground = true)
 //@Composable
 //private fun PreviewIncomeExpenseSummaryCard() {

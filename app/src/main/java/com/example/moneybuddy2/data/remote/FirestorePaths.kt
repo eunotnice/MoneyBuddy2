@@ -8,4 +8,8 @@ object FirestorePaths {
 
     fun expenseCol(uid: String) =
         userDoc(uid).collection(Constants.EXPENSES)
+
+    fun incomeCol(uid: String) =
+        userDoc(uid).collection(Constants.INCOME)
 }
+

@@ -11,12 +11,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.viewmodel.ProfileUiState
 import com.example.moneybuddy2.ui.viewmodel.ProfileViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen (
     onDone: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val repo = remember { AppContainer().repository }
 
@@ -52,7 +54,7 @@ fun ProfileScreen (
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile Setup") },
+                title = { Text("Settings") },
                 navigationIcon = { TextButton(onClick = onBack) { Text("Back") } }
             )
         }
@@ -134,6 +136,15 @@ fun ProfileScreen (
                 "Tip: Set a monthly budget so MoneyBuddy can warn you at 90% usage.",
                 style = MaterialTheme.typography.bodySmall
             )
+
+            Button(
+                onClick = {
+                    FirebaseAuth.getInstance().signOut()
+                    onLogout()
+                }
+            ) {
+                Text("Logout")
+            }
         }
     }
 }

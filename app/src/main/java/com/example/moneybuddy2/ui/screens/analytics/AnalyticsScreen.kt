@@ -20,11 +20,26 @@ import com.example.moneybuddy2.ui.viewmodel.AnalyticsViewModel
 import java.time.YearMonth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-//import com.github.fracassi_marco.jetchart.piechart.PieChart
-//import com.github.fracassi_marco.jetchart.piechart.Pies
-//import com.github.fracassi_marco.jetchart.piechart.Slice
-//import com.github.fracassi_marco.jetchart.piechart.drawers.FilledSliceDrawer
-//import com.github.fracassi_marco.jetchart.animation.fadeInAnimation
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
+import com.example.moneybuddy2.ui.screens.home.MonthYearDropdown
+import java.time.Month
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
+import kotlin.collections.chunked
+import kotlin.collections.forEach
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,14 +66,30 @@ fun AnalyticsScreen(vm: AnalyticsViewModel, onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ui.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-            MonthPickerRow(selected = ui.selectedMonth, onSelect = vm::setMonth)
-            SpendingOverviewCard(ui)
 
-            CategoryPieCard(ui.categoryTotals)
+            //MonthPickerRow(selected = ui.selectedMonth, onSelect = vm::setMonth)
+            MonthYearDropdown(selected = ui.selectedMonth, onSelect = vm::setMonth)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ){
+                Card(
+                    modifier = Modifier.weight(1.3f)
+                ) {
+                    CategoryPieCard(ui.categoryTotals)
+                }
+
+                Card(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    SpendingOverviewCard(ui)
+                }
+            }
 
             CategoryRankList(ui.categoryTotals)
 
@@ -94,22 +125,74 @@ fun SpendingOverviewCard(ui: AnalyticsUiState) {
 }
 
 @Composable
+fun PieChartCanvas(
+    slices: List<CategorySlice>,
+    modifier: Modifier = Modifier,
+    donut: Boolean = false
+){
+    val filtered = slices.filter { it.amount > 0.0 }
+    val total = filtered.sumOf { it.amount }
+
+    if(filtered.isEmpty() || total <= 0.0){
+        return
+    }
+
+    val palette: List<Color> = listOf(
+        MaterialTheme.colorScheme.primary,
+        MaterialTheme.colorScheme.secondary,
+        MaterialTheme.colorScheme.tertiary,
+        MaterialTheme.colorScheme.error,
+        MaterialTheme.colorScheme.primaryContainer,
+        MaterialTheme.colorScheme.secondaryContainer,
+        MaterialTheme.colorScheme.tertiaryContainer,
+        MaterialTheme.colorScheme.surfaceVariant
+    )
+
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(8.dp)
+    ) {
+        var startAngle = -90f
+
+        filtered.forEachIndexed { index, s ->
+            val sweep = ((s.amount / total) * 360.0).toFloat()
+            val color = palette[index % palette.size]
+
+            drawArc(
+                color = color,
+                startAngle = startAngle,
+                sweepAngle = sweep,
+                useCenter = true,
+                size = Size(size.width, size.height)     // or just: size = size
+            )
+
+            startAngle += sweep
+        }
+    }
+}
+
+@Composable
 fun CategoryPieCard(slices: List<CategorySlice>) {
     Card {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Category breakdown", style = MaterialTheme.typography.titleMedium)
+        Column(
+            Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text("Categories", style = MaterialTheme.typography.titleMedium)
 
-//            if (slices.isEmpty()) {
-//                Text("No expenses this month.")
-//                return
-//            }
+            val filtered = slices.filter { it.amount > 0.0 }
+            if(filtered.isEmpty()){
+                Text("No expenses this month")
+                return@Column
+            }
 
-            // Simple pie chart (colors auto-generated by default Material colors is non-trivial;
-            // easiest is to pass a list of Colors. If you want, I can generate a stable palette.)
-//            PieChartCanvas(
-//                values = slices.map { it.amount },
-//                labels = slices.map { it.category }
-//            )
+            PieChartCanvas(
+                slices = filtered,
+                modifier =Modifier.size(180.dp)
+            )
+
         }
     }
 }
@@ -144,10 +227,8 @@ fun SustainabilityCard(
     Card (
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 320.dp)
     ){
         Column(modifier = Modifier
-            .verticalScroll(rememberScrollState())
             .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -192,7 +273,7 @@ fun MonthPickerRow(
 
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
         TextField(
-            value = selected.toString(), // format nicer if you want
+            value = selected.toString(),
             onValueChange = {},
             readOnly = true,
             label = { Text("Month") },
@@ -209,47 +290,93 @@ fun MonthPickerRow(
         }
     }
 }
-//@Composable
-//fun CategoryPieChart(
-//    slices: List<CategorySlice>,
-//    modifier: Modifier = Modifier,
-//    donutThickness: Float = 60f
-//) {
-//    if (slices.isEmpty()) return
-//
-//    // Simple stable palette (you can improve later)
-//    val palette = remember {
-//        listOf(
-//            Color(0xFF4E79A7),
-//            Color(0xFFF28E2B),
-//            Color(0xFFE15759),
-//            Color(0xFF76B7B2),
-//            Color(0xFF59A14F),
-//            Color(0xFFEDC948),
-//            Color(0xFFB07AA1),
-//            Color(0xFFFF9DA7),
-//            Color(0xFF9C755F),
-//            Color(0xFFBAB0AC)
-//        )
-//    }
-//
-//    val jetSlices = remember(slices) {
-//        slices.mapIndexed { idx, s ->
-//            Slice(
-//                value = s.amount.toFloat(),
-//                color = palette[idx % palette.size]
-//            )
-//        }
-//    }
-//
-//    PieChart(
-//        pies = Pies(jetSlices),
-//        modifier = modifier,
-//        animation = fadeInAnimation(900),
-//        sliceDrawer = FilledSliceDrawer(thickness = donutThickness) // thickness>0 = donut
-//    )
-//}
-//
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MonthYearDropdown(
+    selected: YearMonth,
+    onSelect: (YearMonth) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var displayYear by remember { mutableIntStateOf(selected.year) }
+    val now = YearMonth.now()
+    val formatter = remember { DateTimeFormatter.ofPattern("MMMM yyyy", Locale.getDefault()) }
 
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+        modifier = modifier
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
+            value = selected.format(formatter),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Month") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Year row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { displayYear -= 1 }) {
+                        Icon(Icons.Default.ChevronLeft, contentDescription = "Previous year")
+                    }
+
+                    Text(displayYear.toString(), style = MaterialTheme.typography.titleMedium)
+
+                    IconButton(
+                        onClick = { displayYear += 1 },
+                        enabled = displayYear < now.year
+                    ) {
+                        Icon(Icons.Default.ChevronRight, contentDescription = "Next year")
+                    }
+                }
+
+                // Month grid (3 columns)
+                Month.values().asList().chunked(3).forEach { rowMonths ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        rowMonths.forEach { month ->
+                            val ym = YearMonth.of(displayYear, month)
+                            val enabled = ym <= now
+
+                            AssistChip(
+                                onClick = {
+                                    onSelect(ym)
+                                    expanded = false
+                                },
+                                enabled = enabled,
+                                label = {
+                                    Text(
+                                        month.getDisplayName(
+                                            TextStyle.SHORT,
+                                            Locale.getDefault()
+                                        )
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 

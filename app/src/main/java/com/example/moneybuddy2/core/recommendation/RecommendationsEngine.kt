@@ -2,6 +2,7 @@ package com.example.moneybuddy2.core.recommendation
 
 import com.example.moneybuddy2.data.model.BudgetPlan
 import com.example.moneybuddy2.data.model.Expense
+import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.model.RecommendationCard
 import com.example.moneybuddy2.data.model.SourceRef
 import com.example.moneybuddy2.data.model.SpendSummary

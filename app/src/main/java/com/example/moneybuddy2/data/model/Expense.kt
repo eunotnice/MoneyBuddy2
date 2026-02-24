@@ -16,5 +16,4 @@ data class Expense (
     val co2eRuleId: String = "none",
     val co2eFactorVersion: String = "unknown",
     val co2eAssumptions: Map<String, Any> = emptyMap()
-
 )

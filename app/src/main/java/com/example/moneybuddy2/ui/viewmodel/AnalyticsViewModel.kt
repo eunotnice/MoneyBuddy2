@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.core.util.DateUtils
 import com.example.moneybuddy2.data.model.CategorySlice
 import com.example.moneybuddy2.data.model.Expense
+import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.remote.FirebaseProvider
 import com.example.moneybuddy2.data.repository.MoneyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,12 +19,14 @@ data class AnalyticsUiState(
     val loading: Boolean = false,
     val error: String? = null,
     val selectedMonth: YearMonth = YearMonth.now(),
+
     val thisMonthTotal: Double = 0.0,
     val lastMonthTotal: Double = 0.0,
     val pctChangeVsLastMonth: Double? = null, // null = not computable
 
     val categoryTotals: List<CategorySlice> = emptyList(), // includes % and amount
     val expensesThisMonth: List<Expense> = emptyList(),
+    val incomeThisMonth: List<Income> = emptyList(),
 
     val dailyAverage: Double = 0.0,
 
@@ -68,6 +71,7 @@ class AnalyticsViewModel(
 
                 val thisMonth = repo.listExpensesInRangeExclusive(user.uid, start, endExclusive)
                 val lastMonth = repo.listExpensesInRangeExclusive(user.uid, prevStart, prevEndExclusive)
+                val income = repo.listIncomeInRange(user.uid, start, endExclusive)
 
                 val thisTotal = thisMonth.sumOf { it.amount }
                 val lastTotal = lastMonth.sumOf { it.amount }

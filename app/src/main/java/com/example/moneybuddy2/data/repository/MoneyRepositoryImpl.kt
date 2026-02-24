@@ -11,7 +11,7 @@ import android.util.Log
 import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.util.DateUtils.endOfCurrentMonthMillis
 import com.example.moneybuddy2.core.util.DateUtils.startOfCurrentMonthMillis
-
+import com.example.moneybuddy2.data.model.Income
 
 class MoneyRepositoryImpl  (
     private val carbonEstimator: CarbonEstimator
@@ -54,7 +54,18 @@ class MoneyRepositoryImpl  (
             false
         }
     }
+    override suspend fun addIncome(uid:String, income: Income): Boolean{
+        return try{
+            val col = FirestorePaths.incomeCol(uid)
+            val doc = col.document()
 
+            val enriched = income.copy(id = doc.id)
+            doc.set(enriched).await()
+            true
+        } catch (e:Exception){
+            false
+        }
+    }
     override suspend fun addExpense(uid: String, expense: Expense): Boolean {
         return try {
             val col = FirestorePaths.expenseCol(uid)
@@ -124,6 +135,26 @@ class MoneyRepositoryImpl  (
         }
     }
 
+    override suspend fun listIncomeInRange(
+        uid: String,
+        startMillis: Long,
+        endMillis: Long
+    ): List<Income> {
+        return try {
+            val snap = FirestorePaths.incomeCol(uid)
+                .whereGreaterThanOrEqualTo("dateMillis", startMillis)
+                .whereLessThanOrEqualTo("dateMillis", endMillis)
+                .orderBy("dateMillis", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            snap.documents.mapNotNull { it.toObject(Income::class.java) }
+        } catch (e: Exception) {
+            Log.e("MoneyRepo", "listIncomeInRange failed", e)
+            throw e
+        }
+    }
+
     override suspend fun listExpensesInRange(
         uid: String,
         startMillis: Long,
@@ -147,21 +178,7 @@ class MoneyRepositoryImpl  (
     override suspend fun getMonthlyCarbonTotalKg(uid: String): Double {
         val start = startOfCurrentMonthMillis()
         val end = endOfCurrentMonthMillis()
-
-        val col = FirestorePaths.expenseCol(uid)
-
-        val snap = col
-            .whereGreaterThanOrEqualTo("dateMillis", start)
-            .whereLessThanOrEqualTo("dateMillis", end)
-            .get()
-            .await()
-
-        var total = 0.0
-        for (doc in snap.documents) {
-            val v = doc.getDouble("co2eKg")
-            if (v != null) total += v
-        }
-        return total
+        return getCarbonTotalKgInRange(uid, start, end)
     }
 
     override suspend fun listExpensesInRangeExclusive(
@@ -179,9 +196,24 @@ class MoneyRepositoryImpl  (
         return snap.documents.mapNotNull { it.toObject(Expense::class.java) }
     }
 
+    override suspend fun getCarbonTotalKgInRange(
+        uid: String,
+        startMillis: Long,
+        endMillis: Long
+    ): Double {
+        val col = FirestorePaths.expenseCol(uid)
 
+        val snap = col
+            .whereGreaterThanOrEqualTo("dateMillis", startMillis)
+            .whereLessThanOrEqualTo("dateMillis", endMillis)
+            .get()
+            .await()
 
-
-
-
+        var total = 0.0
+        for (doc in snap.documents) {
+            val v = doc.getDouble("co2eKg")
+            if (v != null) total += v
+        }
+        return total
+    }
 }
