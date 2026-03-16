@@ -8,6 +8,7 @@ import com.example.moneybuddy2.core.carbon.loadEmissionFactors
 import com.example.moneybuddy2.core.recommendation.Recommendation
 import com.example.moneybuddy2.data.model.CarbonFactors
 import com.example.moneybuddy2.data.model.FaqItem
+import com.example.moneybuddy2.data.repository.ChatRepository
 import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.data.repository.MoneyRepository
 import com.example.moneybuddy2.data.repository.MoneyRepositoryImpl
@@ -37,7 +38,7 @@ class AppContainer {
     }
     // Shared OCR state between pick + confirm screens
     //val ocrViewModel: OcrViewModel by lazy { OcrViewModel(repository) }
-    val chatViewModel: ChatViewModel by lazy { ChatViewModel(repository) }
+    //val chatViewModel: ChatViewModel by lazy { ChatViewModel(ChatRepository) }
     val recommendationViewModel: RecommendationViewModel by lazy { RecommendationViewModel(repository) }
 
     private fun loadFaqs(context: Context): List<FaqItem> {
@@ -72,7 +73,4 @@ class AppContainer {
         val faqRepo = FaqRepository(faqs)
         return ChatbotViewModel(faqRepo)
     }
-
-
-
 }

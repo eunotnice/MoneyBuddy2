@@ -18,5 +18,6 @@ object Routes {
     const val CHATBOT = "chatbot"
     const val CARBON = "carbon"
     const val ANALYTICS = "analytics"
-
+    const val GAME = "game"
+    const val RESULT = "result"
 }

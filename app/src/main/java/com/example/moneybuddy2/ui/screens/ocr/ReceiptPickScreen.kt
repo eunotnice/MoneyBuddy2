@@ -125,12 +125,12 @@ fun ReceiptPickScreen(
             }
 
             if (ui.rawText.isNotBlank()) {
-                Card {
-                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Extracted text", style = MaterialTheme.typography.titleMedium)
-                        Text(ui.rawText, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+//                Card {
+//                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+//                        Text("Extracted text", style = MaterialTheme.typography.titleMedium)
+//                        Text(ui.rawText, style = MaterialTheme.typography.bodySmall)
+//                    }
+//                }
 
                 val parsed = ui.parsed
                 if (parsed != null) {

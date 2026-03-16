@@ -1,5 +1,6 @@
 package com.example.moneybuddy2.ui.viewmodel
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.core.util.DateUtils
@@ -84,9 +85,26 @@ class AnalyticsViewModel(
                     .groupBy { it.category.ifBlank { "Other" } }
                     .mapValues { (_, items) -> items.sumOf { it.amount } }
 
+                val categoryColors = listOf(
+                    Color(0xFFEF5350),
+                    Color(0xFF42A5F5),
+                    Color(0xFF66BB6A),
+                    Color(0xFFFFCA28),
+                    Color(0xFFAB47BC),
+                    Color(0xFFFF7043),
+                    Color(0xFF26C6DA)
+                )
+
                 val slices = if (thisTotal > 0.0) {
                     catMap.entries
-                        .map { (cat, amt) -> CategorySlice(cat, amt, (amt / thisTotal) * 100.0) }
+                        .mapIndexed { index, (cat, amt) ->
+                            CategorySlice(
+                                category = cat,
+                                amount = amt,
+                                percent = (amt / thisTotal) * 100.0,
+                                color = categoryColors[index % categoryColors.size]
+                            )
+                        }
                         .sortedByDescending { it.amount }
                 } else emptyList()
 

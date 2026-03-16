@@ -101,12 +101,12 @@ fun ReceiptConfirmScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth()
-            )
+//            OutlinedTextField(
+//                value = category,
+//                onValueChange = { category = it },
+//                label = { Text("Category") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             OutlinedTextField(
                 value = amountText,

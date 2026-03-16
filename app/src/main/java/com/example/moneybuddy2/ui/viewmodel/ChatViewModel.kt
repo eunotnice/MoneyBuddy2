@@ -18,10 +18,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.moneybuddy2.data.remote.FirebaseProvider
 import com.example.moneybuddy2.data.remote.GeminiChatResult
+import com.example.moneybuddy2.data.repository.ChatRepository
 
 class ChatViewModel(
-    private val repo: MoneyRepository,
-    private val geminiChat: GeminiChatService = GeminiChatService()
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _ui = MutableStateFlow(ChatUiState())
@@ -46,30 +46,21 @@ class ChatViewModel(
                         ChatPrompts.PERSONAL_ADVICE_RESPONSE
                     }
 
-                    ChatIntent.FIN_LITERACY_GENERAL, ChatIntent.UNKNOWN -> {
-                        withContext(Dispatchers.IO) {
-                            geminiChat.generateTextBlocking(
-                                system = ChatPrompts.FIN_LITERACY_SYSTEM,
-                                user = trimmed
-                            ).text
-                        }
-                    }
-
+                    ChatIntent.FIN_LITERACY_GENERAL,
+                    ChatIntent.UNKNOWN,
                     ChatIntent.APP_INSIGHTS -> {
-                        val facts = buildUserFactsOrExplainMissing()
                         withContext(Dispatchers.IO) {
-                            geminiChat.generateTextBlocking(
-                                system = ChatPrompts.APP_INSIGHTS_SYSTEM,
-                                user = "QUESTION:\n$trimmed\n\nFACTSHEET(JSON):\n${facts.json}"
-                            ).text
+                            chatRepository.sendChatMessage(trimmed)
                         }
                     }
                 }
 
                 _ui.value = _ui.value.copy(
                     messages = _ui.value.messages + ChatMessage(Role.ASSISTANT, replyText),
-                    sending = false
+                    sending = false,
+                    error = null
                 )
+
             } catch (e: Exception) {
                 _ui.value = _ui.value.copy(
                     sending = false,
@@ -78,37 +69,51 @@ class ChatViewModel(
             }
         }
     }
-
-    private suspend fun buildUserFactsOrExplainMissing(): com.example.moneybuddy2.data.repository.InsightsFacts {
-        val user = FirebaseProvider.auth.currentUser
-            ?: return InsightsFactsBuilder.buildFactsheet(
-                periodDays = 30,
-                totalSpend = 0.0,
-                avgDailySpend = 0.0,
-                topCategories = emptyList(),
-                goalSummary = "User not logged in."
-            )
-
-        // Example: last 30 days
-        val end = System.currentTimeMillis()
-        val start = end - 30L * 24L * 60L * 60L * 1000L
-
-        val expenses = repo.listExpensesInRange(user.uid, start, end)
-        val total = expenses.sumOf { it.amount }
-        val avgDaily = total / 30.0
-
-        val byCat = expenses.groupBy { it.category }
-            .mapValues { (_, items) -> items.sumOf { it.amount } }
-            .toList()
-            .sortedByDescending { it.second }
-            .take(5)
-
-        return InsightsFactsBuilder.buildFactsheet(
-            periodDays = 30,
-            totalSpend = total,
-            avgDailySpend = avgDaily,
-            topCategories = byCat,
-            goalSummary = null // add when you implement goals
-        )
-    }
 }
+//class ChatViewModel(
+//    private val chatRepository: ChatRepository
+//) : ViewModel() {
+//
+//    private val _ui = MutableStateFlow(ChatUiState())
+//    val ui: StateFlow<ChatUiState> = _ui
+//
+//    fun send(userText: String) {
+//        val trimmed = userText.trim()
+//        if (trimmed.isEmpty()) return
+//
+//        _ui.value = _ui.value.copy(
+//            messages = _ui.value.messages + ChatMessage(Role.USER, trimmed),
+//            sending = true,
+//            error = null
+//        )
+//
+//        viewModelScope.launch {
+//            try {
+//                val intent = IntentClassifier.classify(trimmed)
+//
+//                val replyText = when (intent) {
+//                    ChatIntent.PERSONAL_ADVICE_REQUEST -> {
+//                        ChatPrompts.PERSONAL_ADVICE_RESPONSE
+//                    }
+//
+//                    ChatIntent.FIN_LITERACY_GENERAL,
+//                    ChatIntent.UNKNOWN,
+//                    ChatIntent.APP_INSIGHTS -> {
+//                        chatRepository.sendChatMessage(trimmed)
+//                    }
+//                }
+//
+//                _ui.value = _ui.value.copy(
+//                    messages = _ui.value.messages + ChatMessage(Role.ASSISTANT, replyText),
+//                    sending = false
+//                )
+//
+//            } catch (e: Exception) {
+//                _ui.value = _ui.value.copy(
+//                    sending = false,
+//                    error = e.message ?: "Chat failed"
+//                )
+//            }
+//        }
+//    }
+//}

@@ -1,6 +1,7 @@
 package com.example.moneybuddy2.ui.screens.home
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -73,7 +74,8 @@ fun HomeScreen(
     onOpenChat: () -> Unit,
     onOpenRecommendations: () -> Unit,
     onOpenBot: () -> Unit,
-    onOpenAnalytics: () -> Unit
+    onOpenAnalytics: () -> Unit,
+    onOpenGame: () -> Unit
 ) {
 
     val ui by vm.uiState.collectAsState()
@@ -97,7 +99,8 @@ fun HomeScreen(
         onOpenRecommendations = onOpenRecommendations,
         onDeleteExpense = { expenseId -> vm.deleteExpense(expenseId) },
         onOpenBot = onOpenBot,
-        onOpenAnalytics = onOpenAnalytics
+        onOpenAnalytics = onOpenAnalytics,
+        onOpenGame = onOpenGame
     )
 }
 
@@ -114,7 +117,8 @@ fun HomeScreenContent(
     onOpenRecommendations: () -> Unit,
     onDeleteExpense: (String) -> Unit,
     onOpenBot: () -> Unit,
-    onOpenAnalytics: () -> Unit
+    onOpenAnalytics: () -> Unit,
+    onOpenGame: () -> Unit
 ) {
 
     Scaffold(
@@ -124,6 +128,8 @@ fun HomeScreenContent(
                 actions = {
                     IconButton(
                         onClick = onOpenAnalytics
+                        //onClick = onOpenChat
+                        //onClick = onOpenGame
                     ) {
                         Icon(
                             imageVector = Icons.Default.Analytics,
@@ -131,6 +137,7 @@ fun HomeScreenContent(
                         )
                     }
                 }
+
             )
         },
 //        floatingActionButton = {
@@ -173,16 +180,6 @@ fun HomeScreenContent(
             )
             val zoneId = ZoneId.systemDefault() // or ZoneId.of("Asia/Kuala_Lumpur")
             val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
-
-//            val groupedByDate: List<Pair<LocalDate, List<Expense>>> = remember(ui.latestExpenses) {
-//                ui.latestExpenses
-//                    .groupBy { e ->
-//                        Instant.ofEpochMilli(e.dateMillis).atZone(zoneId).toLocalDate()
-//                    }
-//                    .toList()
-//                    .sortedByDescending { (date, _) -> date }
-//            }
-
             val groupedByDate: List<Pair<LocalDate, List<TransactionItem>>> = remember(ui.latestExpenses, ui.latestIncome) {
                 val combinedList = buildList<TransactionItem>{
                     addAll(ui.latestExpenses.map {TransactionItem.ExpenseItem(it)})
@@ -197,8 +194,11 @@ fun HomeScreenContent(
                     .sortedByDescending { (date, _) -> date }
 
             }
-
-
+            var selectedExpense by remember { mutableStateOf<Expense?>(null) }
+            var selectedIncome by remember { mutableStateOf<Income?>(null) }
+            var showEditDialog by remember { mutableStateOf(false) }
+            var editingExpense by remember { mutableStateOf<Expense?>(null) }
+            var editingIncome by remember { mutableStateOf<Income?>(null) }
 
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
@@ -227,12 +227,69 @@ fun HomeScreenContent(
                     ) { e ->
                         when(e) {
                             is TransactionItem.ExpenseItem -> {
-                                ExpenseCard(e.expense)
+                                ExpenseCard(
+                                    e.expense,
+                                    onClick = { selectedExpense ->
+                                        showEditDialog = true
+                                        editingExpense = selectedExpense
+                                    }
+                                )
                             }
                             is TransactionItem.IncomeItem -> {
-                                IncomeCard(e.income)
+                                IncomeCard(
+                                    e.income,
+                                    onClick = { selectedIncome ->
+                                        showEditDialog = true
+                                        editingIncome = selectedIncome
+                                    }
+                                )
                             }
                         }
+//                        if (showEditDialog && editingExpense != null) {
+//
+//                        AlertDialog(
+//                            onDismissRequest = { showEditDialog = false },
+//
+//                            title = { Text("Edit Expense") },
+//
+//                            text = {
+//                                Column {
+//
+//                                    OutlinedTextField(
+//                                        value = editingExpense!!.title,
+//                                        onValueChange = {
+//                                            editingExpense =
+//                                                editingExpense!!.copy(title = it)
+//                                        }
+//                                    )
+//
+//                                    OutlinedTextField(
+//                                        value = editingExpense!!.amount.toString(),
+//                                        onValueChange = {
+//                                            editingExpense =
+//                                                editingExpense!!.copy(
+//                                                    amount = it.toDoubleOrNull() ?: 0.0
+//                                                )
+//                                        }
+//                                    )
+//                                }
+//                            },
+//
+//                            confirmButton = {
+//                                TextButton(onClick = {
+//                                    onUpdateExpense(e.id) }) { Text("Update")
+//                                    showEditDialog = false
+//                                }
+//                            },
+//
+//                            dismissButton = {
+//                                TextButton(onClick = {
+//                                    onDeleteExpense(e.id) }) { Text("Delete")
+//                                    showEditDialog = false
+//                                }
+//                            }
+//                        )
+//                    }
                     }
                 }
             }
@@ -484,8 +541,13 @@ fun MonthYearDropdown(
 }
 
 @Composable
-fun ExpenseCard(e: Expense) {
+fun ExpenseCard(e: Expense, onClick: (Expense)->Unit) {
     Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable{
+                onClick(e)
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
@@ -523,8 +585,13 @@ fun ExpenseCard(e: Expense) {
 }
 
 @Composable
-fun IncomeCard(i: Income) {
+fun IncomeCard(i: Income, onClick: (Income)->Unit) {
     Card (
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable{
+                onClick(i)
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
         )

@@ -52,6 +52,13 @@ class ExpenseViewModel (
         }
     }
 
+    fun updateExpense(uid: String, expense: Expense, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = repo.updateExpense(uid, expense)
+            onResult(success)
+        }
+    }
+
     fun clearStatus(){
         _uiState.value = ExpenseUiState()
     }

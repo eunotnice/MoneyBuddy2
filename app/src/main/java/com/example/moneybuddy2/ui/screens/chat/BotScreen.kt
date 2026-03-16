@@ -1,13 +1,21 @@
 package com.example.moneybuddy2.ui.screens.chat
 
+import android.os.Message
 import android.util.Log
+import android.view.textclassifier.ConversationActions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
@@ -16,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.moneybuddy2.MoneyBuddyApp
 import com.example.moneybuddy2.core.chat.BotAction
 import com.example.moneybuddy2.core.chat.WhatsappHelper
+import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.Role
 import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
@@ -33,7 +42,10 @@ fun BotScreen (
 
     // Store last action to decide showing WA button
     var lastAction by remember { mutableStateOf<BotAction?>(null) }
-
+    val listState = rememberLazyListState()
+    LaunchedEffect(ui.messages.size) {
+        listState.animateScrollToItem(ui.messages.size)
+    }
     Scaffold(
     topBar = {
         TopAppBar(
@@ -45,12 +57,15 @@ fun BotScreen (
         Column(Modifier.padding(pad).fillMaxSize()) {
 
             LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(12.dp),
+                state = listState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(ui.messages) { m ->
-                    val prefix = if (m.role == Role.USER) "You: " else "SBH: "
-                    Text(prefix + m.text)
+                items(ui.messages) { message ->
+                    MessageBubble(message)
                 }
             }
 
@@ -100,6 +115,55 @@ fun BotScreen (
 }
 
 private const val TAG_CHATBOT = "ChatbotRoute"
+
+//@Composable
+//fun MessageBubble(message: ChatMessage){
+//    val isUser = message.role == Role.USER
+//    Row(
+//        modifier = Modifier.fillMaxWidth(),
+//        horizontalArrangement = if(isUser) Arrangement.End else Arrangement.Start
+//    ) {
+//        if(!isUser){
+//            Icon(
+//                imageVector = Icons.Default.SmartToy,
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(32.dp)
+//                    .padding(end = 6.dp)
+//            )
+//        }
+//
+//        Card(
+//            colors = CardDefaults.cardColors(
+//                containerColor =
+//                    if(isUser)
+//                        MaterialTheme.colorScheme.primary
+//                    else
+//                        MaterialTheme.colorScheme.surfaceVariant
+//            ),
+//            shape = RoundedCornerShape(16.dp),
+//            modifier = Modifier.padding(4.dp)
+//        ){
+//            Text(
+//                text = message.text,
+//                modifier = Modifier.padding(12.dp),
+//                color = if (isUser) Color.White else Color.Black
+//            )
+//        }
+//
+//        if(isUser){
+//            Icon(
+//                imageVector = Icons.Default.Person,
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(32.dp)
+//                    .padding(start = 6.dp)
+//            )
+//        }
+//
+//    }
+//}
+
 
 
 @Composable

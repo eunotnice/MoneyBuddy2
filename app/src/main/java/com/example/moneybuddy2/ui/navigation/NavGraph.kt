@@ -69,7 +69,12 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import com.example.moneybuddy2.game.screens.ResultScreen
+import com.example.moneybuddy2.game.screens.SimulatorScreen
+import com.example.moneybuddy2.game.SimulatorViewModel
 import com.example.moneybuddy2.ui.screens.income.AddIncomeScreen
+import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
+import com.example.moneybuddy2.ui.viewmodel.ChatViewModelFactory
 
 
 @Composable
@@ -133,7 +138,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
 
                 // Pass the ViewModel to HomeScreen
                 HomeScreen(
-                    vm = vm, // <-- The fix is here
+                    vm = vm,
                     onOpenSettings = {
                         navController.navigate(Routes.SETTINGS)
                     },
@@ -150,10 +155,38 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                     onOpenChat = { navController.navigate(Routes.CHAT) },
                     onOpenRecommendations = { navController.navigate(Routes.RECOMMENDATIONS) },
                     onOpenBot = { navController.navigate(Routes.CHATBOT) },
-                    onOpenAnalytics = { navController.navigate(Routes.ANALYTICS) }
+                    onOpenAnalytics = { navController.navigate(Routes.ANALYTICS) },
+                    onOpenGame = { navController.navigate(Routes.GAME) }
                 )
             }
 
+            composable(Routes.GAME) { backStackEntry ->
+
+                val gameViewModel: SimulatorViewModel = viewModel(backStackEntry)
+
+                SimulatorScreen(
+                    viewModel = gameViewModel,
+                    onSimulate = {
+                        navController.navigate(Routes.RESULT)
+                    }
+                )
+            }
+
+            composable(Routes.RESULT) { backStackEntry ->
+
+                val parentEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(Routes.GAME)
+                }
+
+                val gameViewModel: SimulatorViewModel = viewModel(parentEntry)
+
+                ResultScreen(
+                    viewModel = gameViewModel,
+                    onReset = {
+                        navController.popBackStack()
+                    }
+                )
+            }
 
             composable(Routes.PROFILE){
                 ProfileScreen(
@@ -168,6 +201,17 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                         }
                     },
                     onBack = { navController.popBackStack()}
+                )
+            }
+
+            composable(Routes.CHAT) {
+                val vm: ChatViewModel = viewModel(
+                    factory = ChatViewModelFactory()
+                )
+
+                ChatScreen(
+                    vm = vm,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
@@ -193,6 +237,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                     whatsappPhoneE164 = "601127275319"
                 )
             }
+
 
             composable(Routes.RECOMMENDATIONS) {
                 val context = LocalContext.current
@@ -303,7 +348,7 @@ fun AppBottomBar(navController: NavHostController) {
     val selectedTab = when (currentRoute) {
         Routes.HOME -> BottomNavItem.Home
         Routes.RECOMMENDATIONS -> BottomNavItem.Tools
-        Routes.CHATBOT -> BottomNavItem.Chat
+        Routes.CHAT -> BottomNavItem.Chat
         Routes.RECEIPT_PICK, Routes.RECEIPT_CONFIRM, Routes.RECEIPT_GRAPH -> BottomNavItem.Receipt
         Routes.PROFILE -> BottomNavItem.Profile
         //Routes.SETTINGS -> BottomNavItem.Settings

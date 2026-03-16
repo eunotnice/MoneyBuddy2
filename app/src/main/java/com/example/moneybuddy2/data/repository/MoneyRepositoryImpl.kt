@@ -11,7 +11,12 @@ import android.util.Log
 import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.util.DateUtils.endOfCurrentMonthMillis
 import com.example.moneybuddy2.core.util.DateUtils.startOfCurrentMonthMillis
+import com.example.moneybuddy2.data.model.BudgetBucket
+import com.example.moneybuddy2.data.model.BudgetBucketSummary
+import com.example.moneybuddy2.data.model.ExpenseCategory
 import com.example.moneybuddy2.data.model.Income
+import com.example.moneybuddy2.data.model.IncomeAssessment
+import com.example.moneybuddy2.data.model.UserFinanceSnapshot
 
 class MoneyRepositoryImpl  (
     private val carbonEstimator: CarbonEstimator
@@ -215,5 +220,155 @@ class MoneyRepositoryImpl  (
             if (v != null) total += v
         }
         return total
+    }
+
+    private fun categoryToBudgetBucket(category: String): BudgetBucket {
+        return when (category) {
+            ExpenseCategory.FOOD_DRINK.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.GROCERIES.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.TRANSPORT.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.UTILITIES.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.HEALTH.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.EDUCATION.wire -> BudgetBucket.NEEDS
+            ExpenseCategory.SERVICES.wire -> BudgetBucket.NEEDS
+
+            ExpenseCategory.SHOPPING.wire -> BudgetBucket.WANTS
+            ExpenseCategory.ENTERTAINMENT.wire -> BudgetBucket.WANTS
+            ExpenseCategory.TRAVEL.wire -> BudgetBucket.WANTS
+
+            else -> BudgetBucket.UNCATEGORISED
+        }
+    }
+
+    private fun computeBudgetBucketSummary(expenses: List<Expense>): BudgetBucketSummary {
+        var needs = 0.0
+        var wants = 0.0
+        var uncategorised = 0.0
+
+        for (expense in expenses) {
+            when (categoryToBudgetBucket(expense.category)) {
+                BudgetBucket.NEEDS -> needs += expense.amount
+                BudgetBucket.WANTS -> wants += expense.amount
+                BudgetBucket.UNCATEGORISED -> uncategorised += expense.amount
+            }
+        }
+
+        return BudgetBucketSummary(
+            needsTotal = needs,
+            wantsTotal = wants,
+            uncategorisedTotal = uncategorised,
+            byBucket = mapOf(
+                "needs" to needs,
+                "wants" to wants,
+                "uncategorised" to uncategorised
+            )
+        )
+    }
+
+    private fun median(values: List<Double>): Double? {
+        if (values.isEmpty()) return null
+        val sorted = values.sorted()
+        val mid = sorted.size / 2
+
+        return if (sorted.size % 2 == 0) {
+            (sorted[mid - 1] + sorted[mid]) / 2.0
+        } else {
+            sorted[mid]
+        }
+    }
+
+    suspend fun assessIncome(
+        uid: String,
+        periodStartMillis: Long,
+        periodEndMillis: Long
+    ): IncomeAssessment {
+        val currentIncomes = listIncomeInRange(uid, periodStartMillis, periodEndMillis)
+        val currentTotal = currentIncomes.sumOf { it.amount }
+
+        if (currentTotal > 0.0) {
+            return IncomeAssessment(
+                totalIncome = currentTotal,
+                confidence = "known",
+                estimatedFrom = "current_period"
+            )
+        }
+
+        val ninetyDaysMillis = 90L * 24L * 60L * 60L * 1000L
+        val historicStart = periodStartMillis - ninetyDaysMillis
+
+        val historicIncomes = listIncomeInRange(uid, historicStart, periodEndMillis)
+
+        if (historicIncomes.isNotEmpty()) {
+            val monthlyTotals = historicIncomes
+                .groupBy { income ->
+                    val cal = java.util.Calendar.getInstance()
+                    cal.timeInMillis = income.dateMillis
+                    "${cal.get(java.util.Calendar.YEAR)}-${cal.get(java.util.Calendar.MONTH) + 1}"
+                }
+                .mapValues { (_, incomes) -> incomes.sumOf { it.amount } }
+                .values
+                .filter { it > 0.0 }
+                .toList()
+
+            val monthlyMedian = median(monthlyTotals)
+
+            if (monthlyMedian != null && monthlyMedian > 0.0) {
+                return IncomeAssessment(
+                    totalIncome = monthlyMedian,
+                    confidence = "estimated",
+                    estimatedFrom = "median_last_3_months"
+                )
+            }
+        }
+
+        return IncomeAssessment(
+            totalIncome = null,
+            confidence = "missing",
+            estimatedFrom = null
+        )
+    }
+
+    suspend fun buildUserFinanceSnapshot(
+        uid: String,
+        periodDays: Int = 30,
+        nowMillis: Long = System.currentTimeMillis()
+    ): UserFinanceSnapshot {
+        val periodStartMillis = nowMillis - periodDays * 24L * 60L * 60L * 1000L
+        val periodEndMillis = nowMillis
+
+        val expenses = listExpensesInRange(uid, periodStartMillis, periodEndMillis)
+        val incomeAssessment = assessIncome(uid, periodStartMillis, periodEndMillis)
+
+        val spendByCategory = expenses
+            .groupBy { it.category }
+            .mapValues { (_, items) -> items.sumOf { it.amount } }
+
+        val topCategories = spendByCategory
+            .toList()
+            .sortedByDescending { it.second }
+            .take(5)
+
+        val totalCo2eKg = expenses.sumOf { it.co2eKg ?: 0.0 }.takeIf { it > 0.0 }
+
+        val co2eByCategory = expenses
+            .groupBy { it.category }
+            .mapValues { (_, items) -> items.sumOf { it.co2eKg ?: 0.0 } }
+
+        return UserFinanceSnapshot(
+            userId = uid,
+            nowMillis = nowMillis,
+            currency = "MYR",
+            periodStartMillis = periodStartMillis,
+            periodEndMillis = periodEndMillis,
+            totalSpent = expenses.sumOf { it.amount },
+            totalIncome = incomeAssessment.totalIncome,
+            incomeCondifence = incomeAssessment.confidence,
+            spendByCategory = spendByCategory,
+            topSpendCategories = topCategories,
+            totalCo2eKg = totalCo2eKg,
+            co2eByCategory = co2eByCategory,
+            treesEquivalent = null,
+            treesFactorLabel = null
+        )
     }
 }

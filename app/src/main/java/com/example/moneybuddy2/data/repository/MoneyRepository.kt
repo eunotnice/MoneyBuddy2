@@ -22,4 +22,6 @@ interface MoneyRepository {
 
     suspend fun getMonthlyCarbonTotalKg(uid: String): Double
     suspend fun getCarbonTotalKgInRange (uid:String, startMillis: Long, endMillis: Long): Double
+
+
 }

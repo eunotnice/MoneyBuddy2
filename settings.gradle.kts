@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MoneyBuddy2"
 include(":app")
- 
+include(":backend")

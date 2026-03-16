@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     object Home : BottomNavItem("home", Icons.Default.Home, "Home")
     object Tools: BottomNavItem("recommendations", Icons.Default.Dashboard, "Tools")
-    object Chat : BottomNavItem("chatbot", Icons.Default.Chat, "Chat")
+    object Chat : BottomNavItem("chat", Icons.Default.Chat, "Chat")
     object Receipt : BottomNavItem("receipt_graph", Icons.Default.AddBox, "Receipt")
     object Profile : BottomNavItem("profile", Icons.Default.Settings, "Settings")
     //object Settings : BottomNavItem("settings", Icons.Default.Settings, "Settings")

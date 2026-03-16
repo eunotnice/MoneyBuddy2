@@ -76,18 +76,18 @@ fun ProfileScreen (
                 modifier = Modifier.fillMaxWidth()
             )
 
-            OutlinedTextField(
-                value = incomeText,
-                onValueChange = { incomeText = it },
-                label = { Text("Monthly income (optional)") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
+//            OutlinedTextField(
+//                value = incomeText,
+//                onValueChange = { incomeText = it },
+//                label = { Text("Monthly income (optional)") },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             OutlinedTextField(
                 value = budgetText,
                 onValueChange = { budgetText = it },
-                label = { Text("Monthly budget (required for alerts)") },
+                label = { Text("Monthly budget") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -95,7 +95,7 @@ fun ProfileScreen (
             OutlinedTextField(
                 value = goalText,
                 onValueChange = { goalText = it },
-                label = { Text("Saving goal (optional)") },
+                label = { Text("Saving goal") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -132,16 +132,12 @@ fun ProfileScreen (
                 Text(if (ui.loading) "Saving..." else "Save Profile")
             }
 
-            Text(
-                "Tip: Set a monthly budget so MoneyBuddy can warn you at 90% usage.",
-                style = MaterialTheme.typography.bodySmall
-            )
-
             Button(
                 onClick = {
                     FirebaseAuth.getInstance().signOut()
                     onLogout()
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Logout")
             }

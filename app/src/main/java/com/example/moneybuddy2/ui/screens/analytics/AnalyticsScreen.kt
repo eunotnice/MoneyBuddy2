@@ -21,8 +21,10 @@ import java.time.YearMonth
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
@@ -133,16 +135,16 @@ fun PieChartCanvas(
         return
     }
 
-    val palette: List<Color> = listOf(
-        Color(0xFFFFC1CC), // pastel pink
-        Color(0xFFFFE0B2), // pastel peach
-        Color(0xFFFFF9C4), // pastel yellow
-        Color(0xFFC8E6C9), // pastel green
-        Color(0xFFB3E5FC), // pastel blue
-        Color(0xFFD1C4E9), // pastel purple
-        Color(0xFFFFCDD2), // soft rose
-        Color(0xFFB2DFDB)  // pastel teal
-    )
+//    val palette: List<Color> = listOf(
+//        Color(0xFFFFC1CC), // pastel pink
+//        Color(0xFFFFE0B2), // pastel peach
+//        Color(0xFFFFF9C4), // pastel yellow
+//        Color(0xFFC8E6C9), // pastel green
+//        Color(0xFFB3E5FC), // pastel blue
+//        Color(0xFFD1C4E9), // pastel purple
+//        Color(0xFFFFCDD2), // soft rose
+//        Color(0xFFB2DFDB)  // pastel teal
+//    )
 
     Canvas(
         modifier = modifier
@@ -154,10 +156,10 @@ fun PieChartCanvas(
 
         filtered.forEachIndexed { index, s ->
             val sweep = ((s.amount / total) * 360.0).toFloat()
-            val color = palette[index % palette.size]
+            //val color = palette[index % palette.size]
 
             drawArc(
-                color = color,
+                color = s.color,
                 startAngle = startAngle,
                 sweepAngle = sweep,
                 useCenter = true,
@@ -173,7 +175,7 @@ fun PieChartCanvas(
 fun CategoryPieCard(slices: List<CategorySlice>) {
     Card (
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8F6FD)
+            containerColor = Color.Transparent
         )
     ){
         Column(
@@ -201,7 +203,7 @@ fun CategoryPieCard(slices: List<CategorySlice>) {
 fun CategoryRankList(slices: List<CategorySlice>) {
     Card (
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFF8F6FD)
+            containerColor = Color.Transparent
         )
     ){
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -213,8 +215,31 @@ fun CategoryRankList(slices: List<CategorySlice>) {
             }
 
             slices.forEach { s ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("${s.category} (${s.percent.toInt()}%)")
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(
+                                    s.color,
+                                    shape = CircleShape
+                                )
+                        )
+
+                        Text(
+                            text = "${s.category} (${s.percent.toInt()}%)",
+                            color = s.color
+                        )
+                    }
+
                     Text("RM %.2f".format(s.amount))
                 }
             }
