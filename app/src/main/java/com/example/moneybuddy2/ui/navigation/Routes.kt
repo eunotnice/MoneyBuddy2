@@ -6,7 +6,15 @@ object Routes {
     const val HOME = "home"
     const val SETTINGS = "settings"
     const val ADD_INCOME = "add_income"
+    const val EDIT_INCOME = "edit_income"
+    const val EDIT_INCOME_ROUTE = "edit_income/{incomeId}"
     const val ADD_EXPENSE = "add_expense"
+    const val EDIT_EXPENSE = "edit_expense"
+    const val EDIT_EXPENSE_ROUTE = "edit_expense/{expenseId}"
+
+    fun editExpense(expenseId: String) = "$EDIT_EXPENSE/$expenseId"
+    fun editIncome(incomeId: String) = "$EDIT_INCOME/$incomeId"
+
     const val RECEIPT_SCAN = "receipt_scan"
     const val RECEIPT_PICK = "receipt_pick"
     const val RECEIPT_CONFIRM = "receipt_confirm"

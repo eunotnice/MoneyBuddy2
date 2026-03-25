@@ -40,9 +40,7 @@ import com.example.moneybuddy2.ui.screens.ocr.ReceiptScanScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptPickScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptConfirmScreen
 import com.example.moneybuddy2.ui.screens.chat.ChatScreen
-import com.example.moneybuddy2.ui.screens.chat.RecommendationScreen
 import com.example.moneybuddy2.ui.screens.chat.BotScreen
-import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 import androidx.navigation.compose.navigation
 import com.example.moneybuddy2.MoneyBuddyApp
@@ -72,10 +70,25 @@ import androidx.compose.ui.unit.dp
 import com.example.moneybuddy2.game.screens.ResultScreen
 import com.example.moneybuddy2.game.screens.SimulatorScreen
 import com.example.moneybuddy2.game.SimulatorViewModel
+import com.example.moneybuddy2.ui.screens.chat.AiRecommendationScreen
+import com.example.moneybuddy2.ui.screens.expense.EditExpenseRoute
 import com.example.moneybuddy2.ui.screens.income.AddIncomeScreen
+import com.example.moneybuddy2.ui.screens.income.EditIncomeRoute
+import com.example.moneybuddy2.ui.viewmodel.AiRecommendationViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatViewModelFactory
-
+import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
+import com.example.moneybuddy2.ui.viewmodel.OcrViewModelFactory
+import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModelFactory
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun AppNavGraph(navController: NavHostController, startDestination: String) {
@@ -156,7 +169,14 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                     onOpenRecommendations = { navController.navigate(Routes.RECOMMENDATIONS) },
                     onOpenBot = { navController.navigate(Routes.CHATBOT) },
                     onOpenAnalytics = { navController.navigate(Routes.ANALYTICS) },
-                    onOpenGame = { navController.navigate(Routes.GAME) }
+                    onOpenGame = { navController.navigate(Routes.GAME) },
+                    onEditExpense = { id ->
+                        navController.navigate(Routes.editExpense(id))
+                    },
+                    onEditIncome = { id ->
+                        navController.navigate(Routes.editIncome(id))
+                    }
+
                 )
             }
 
@@ -239,12 +259,23 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
             }
 
 
-            composable(Routes.RECOMMENDATIONS) {
-                val context = LocalContext.current
-                val app = context.applicationContext as MoneyBuddyApp
-                val vm = app.container.recommendationViewModel
+//            composable(Routes.RECOMMENDATIONS) {
+//                val context = LocalContext.current
+//                val app = context.applicationContext as MoneyBuddyApp
+//                val vm = app.container.recommendationViewModel
+//
+//                RecommendationScreen(
+//                    vm = vm,
+//                    onBack = { navController.popBackStack() }
+//                )
+//            }
 
-                RecommendationScreen(
+            composable(Routes.RECOMMENDATIONS) {
+                val vm: AiRecommendationViewModel = viewModel(
+                    factory = RecommendationViewModelFactory()
+                )
+
+                AiRecommendationScreen(
                     vm = vm,
                     onBack = { navController.popBackStack() }
                 )
@@ -258,6 +289,24 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
 
             composable(Routes.ADD_INCOME){
                 AddIncomeScreen (
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.EDIT_EXPENSE_ROUTE) { backStackEntry ->
+                val expenseId = backStackEntry.arguments?.getString("expenseId").orEmpty()
+
+                EditExpenseRoute(
+                    expenseId = expenseId,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Routes.EDIT_INCOME_ROUTE) { backStackEntry ->
+                val incomeId = backStackEntry.arguments?.getString("incomeId").orEmpty()
+
+                EditIncomeRoute(
+                    incomeId = incomeId,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -293,22 +342,37 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 }
 
                 composable(Routes.RECEIPT_CONFIRM) { entry ->
-
                     val parentEntry = remember(entry) {
                         navController.getBackStackEntry(Routes.RECEIPT_GRAPH)
                     }
 
+                    val context = LocalContext.current
+                    val app = context.applicationContext as MoneyBuddyApp
+                    val repo = app.container.repository
+
+                    val vm: OcrViewModel = viewModel(
+                        viewModelStoreOwner = parentEntry,
+                        factory = remember(repo) { OcrViewModelFactory(repo) }
+                    )
+
                     ReceiptConfirmScreen(
                         parentEntry = parentEntry,
-                        onBack = { navController.popBackStack() },
+                        onBack = {
+                            vm.clearParsedResult()
+                            navController.popBackStack()
+                        },
                         onSaved = {
+                            vm.reset()
                             navController.navigate(Routes.HOME) {
                                 popUpTo(Routes.RECEIPT_GRAPH) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
                     )
                 }
             }
+
+
 
             composable(Routes.ANALYTICS) { entry ->
                 val context = LocalContext.current
@@ -344,13 +408,16 @@ fun AppBottomBar(navController: NavHostController) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    val noBottomBarScreens = listOf("login", "signup")
+
 
     val selectedTab = when (currentRoute) {
         Routes.HOME -> BottomNavItem.Home
         Routes.RECOMMENDATIONS -> BottomNavItem.Tools
         Routes.CHAT -> BottomNavItem.Chat
         Routes.RECEIPT_PICK, Routes.RECEIPT_CONFIRM, Routes.RECEIPT_GRAPH -> BottomNavItem.Receipt
-        Routes.PROFILE -> BottomNavItem.Profile
+        Routes.GAME -> BottomNavItem.Game
+        //Routes.PROFILE -> BottomNavItem.Profile
         //Routes.SETTINGS -> BottomNavItem.Settings
         else -> null
     }
@@ -360,7 +427,8 @@ fun AppBottomBar(navController: NavHostController) {
         BottomNavItem.Tools,
         BottomNavItem.Receipt,
         BottomNavItem.Chat,
-        BottomNavItem.Profile
+        BottomNavItem.Game
+        //BottomNavItem.Profile
        // BottomNavItem.Settings
     )
 
@@ -394,37 +462,46 @@ fun AppBottomBar(navController: NavHostController) {
         }
     }
 
-    NavigationBar {
-        items.forEach { item ->
-            val selected = selectedTab == item
+    if(currentRoute !in noBottomBarScreens){
+        NavigationBar {
+            items.forEach { item ->
+                val selected = selectedTab == item
 
-            NavigationBarItem(
-                selected = selected,
-                onClick = {
-                    if(item == BottomNavItem.Receipt){
-                        showReceiptSheet = true
-                        return@NavigationBarItem
-                    }
-
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                NavigationBarItem(
+                    selected = selected,
+                    onClick = {
+                        if(item == BottomNavItem.Receipt){
+                            showReceiptSheet = true
+                            return@NavigationBarItem
                         }
-                        launchSingleTop = true
-                        restoreState = true
+
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.findStartDestination().id) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = { Icon(item.icon, contentDescription = item.label) },
+                    label = {
+                        Text(
+                            item.label,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                        )
                     }
-                },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = {
-                    Text(
-                        item.label,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                    )
-                }
-            )
+                )
+            }
         }
     }
 }
+
+private val GreenMint     = Color(0xFF00C896)
+private val GreenLight    = Color(0xFFE6FBF5)
+private val TextPrimary   = Color(0xFF1A1D23)
+private val TextSecondary = Color(0xFF6B7280)
+private val DividerColor  = Color(0xFFE5E7EB)
+private val CardWhite     = Color(0xFFFFFFFF)
 
 @Composable
 fun ReceiptEntrySheet(
@@ -436,52 +513,148 @@ fun ReceiptEntrySheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Text("Add expense", style = MaterialTheme.typography.titleLarge)
-        Text("Choose a method", style = MaterialTheme.typography.bodyMedium)
-
-        Spacer(Modifier.height(8.dp))
-
-        ListItem(
-            headlineContent = { Text("Add Income") },
-            supportingContent = { Text("Type income amount, category, date") },
-            leadingContent = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
+        // ── Drag handle ──────────────────────────────────────────────────
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onIncome() }
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 12.dp, bottom = 20.dp)
+                .size(width = 36.dp, height = 4.dp)
+                .clip(RoundedCornerShape(50))
+                .background(DividerColor)
         )
 
-        ListItem(
-            headlineContent = { Text("Enter manually") },
-            supportingContent = { Text("Type merchant, amount, category, date") },
-            leadingContent = { Icon(Icons.Default.Edit, contentDescription = null) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onManual() }
+        // ── Header ───────────────────────────────────────────────────────
+        Text(
+            "Add Transaction",
+            fontWeight = FontWeight.Bold,
+            fontSize   = 20.sp,
+            color      = TextPrimary
         )
-
-        ListItem(
-            headlineContent = { Text("Scan receipt (camera)") },
-            supportingContent = { Text("Capture a receipt using the camera") },
-            leadingContent = { Icon(Icons.Default.PhotoCamera, contentDescription = null) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onScanCamera() }
-        )
-
-        ListItem(
-            headlineContent = { Text("Upload receipt (gallery)") },
-            supportingContent = { Text("Pick an image from your gallery") },
-            leadingContent = { Icon(Icons.Default.PhotoLibrary, contentDescription = null) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onUploadGallery() }
-        )
-
         Spacer(Modifier.height(4.dp))
+        Text(
+            "Choose how you'd like to add",
+            fontSize = 14.sp,
+            color    = TextSecondary
+        )
+
+        Spacer(Modifier.height(20.dp))
+
+        // ── Action tiles ─────────────────────────────────────────────────
+        EntryOption(
+            icon        = Icons.Outlined.TrendingUp,
+            iconBg      = Color(0xFFE8F5E9),
+            iconTint    = Color(0xFF2E7D32),
+            title       = "Add Income",
+            subtitle    = "Record salary, bonus, freelance & more",
+            onClick     = onIncome
+        )
+
+        OptionDivider()
+
+        EntryOption(
+            icon        = Icons.Outlined.Edit,
+            iconBg      = Color(0xFFEAF2FF),
+            iconTint    = Color(0xFF1565C0),
+            title       = "Enter Manually",
+            subtitle    = "Type merchant, amount, category & date",
+            onClick     = onManual
+        )
+
+        OptionDivider()
+
+        EntryOption(
+            icon        = Icons.Outlined.PhotoCamera,
+            iconBg      = GreenLight,
+            iconTint    = GreenMint,
+            title       = "Scan Receipt",
+            subtitle    = "Capture a receipt using your camera",
+            onClick     = onScanCamera
+        )
+
+        OptionDivider()
+
+        EntryOption(
+            icon        = Icons.Outlined.PhotoLibrary,
+            iconBg      = Color(0xFFF3EEFF),
+            iconTint    = Color(0xFF6A1B9A),
+            title       = "Upload from Gallery",
+            subtitle    = "Pick an existing receipt image",
+            onClick     = onUploadGallery
+        )
     }
+}
+
+// ─── Single option row ────────────────────────────────────────────────────────
+@Composable
+private fun EntryOption(
+    icon: ImageVector,
+    iconBg: Color,
+    iconTint: Color,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        // Icon circle
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(iconBg),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint     = iconTint,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+
+        // Text
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                fontWeight = FontWeight.SemiBold,
+                fontSize   = 15.sp,
+                color      = TextPrimary
+            )
+            Text(
+                subtitle,
+                fontSize   = 13.sp,
+                color      = TextSecondary,
+                lineHeight = 18.sp
+            )
+        }
+
+        // Chevron
+        Icon(
+            Icons.Outlined.ChevronRight,
+            contentDescription = null,
+            tint     = DividerColor,
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+@Composable
+private fun OptionDivider() {
+    HorizontalDivider(
+        modifier  = Modifier.padding(start = 60.dp),
+        color     = DividerColor,
+        thickness = 0.8.dp
+    )
 }
 

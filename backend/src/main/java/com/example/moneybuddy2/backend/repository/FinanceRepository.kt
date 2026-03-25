@@ -40,7 +40,7 @@ class FinanceRepository(
         try {
             val snapshot = db.collection("users")
                 .document(uid)
-                .collection("incomes")
+                .collection("income")
                 .whereGreaterThanOrEqualTo("dateMillis", startMillis)
                 .whereLessThanOrEqualTo("dateMillis", endMillis)
                 .get()

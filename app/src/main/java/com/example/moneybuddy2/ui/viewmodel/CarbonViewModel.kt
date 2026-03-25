@@ -9,7 +9,7 @@ import com.example.moneybuddy2.data.repository.MoneyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class CarbonViewModel (
+class  CarbonViewModel (
     private val repo: MoneyRepository,
     private val calc: CarbonCalculator,
     private val factors: EmissionFactors

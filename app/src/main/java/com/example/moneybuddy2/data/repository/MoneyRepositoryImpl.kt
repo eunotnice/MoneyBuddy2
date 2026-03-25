@@ -116,12 +116,38 @@ class MoneyRepositoryImpl  (
         }
     }
 
+    override suspend fun getExpenseById(uid: String, expenseId: String): Expense? {
+        return try {
+            if (expenseId.isBlank()) return null
+
+            val doc = FirestorePaths.expenseCol(uid).document(expenseId).get().await()
+            if (!doc.exists()) return null
+
+            doc.toObject(Expense::class.java)?.copy(id = doc.id)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    override suspend fun getIncomeById(uid: String, incomeId: String): Income? {
+        return try {
+            if (incomeId.isBlank()) return null
+
+            val doc = FirestorePaths.incomeCol(uid).document(incomeId).get().await()
+            if (!doc.exists()) return null
+
+            doc.toObject(Income::class.java)?.copy(id = doc.id)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     override suspend fun updateExpense(uid: String, expense: Expense): Boolean {
         return try {
             if (expense.id.isBlank()) return false
 
             val docRef = FirestorePaths.expenseCol(uid).document(expense.id)
-            docRef.set(expense).await()  // overwrite doc with updated fields
+            docRef.set(expense).await()
             true
         } catch (e: Exception) {
             false
@@ -133,6 +159,30 @@ class MoneyRepositoryImpl  (
             if (expenseId.isBlank()) return false
 
             val docRef = FirestorePaths.expenseCol(uid).document(expenseId)
+            docRef.delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    override suspend fun updateIncome(uid: String, income:Income): Boolean {
+        return try {
+            if (income.id.isBlank()) return false
+
+            val docRef = FirestorePaths.incomeCol(uid).document(income.id)
+            docRef.set(income).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    override suspend fun deleteIncome(uid: String, incomeId: String): Boolean {
+        return try {
+            if (incomeId.isBlank()) return false
+
+            val docRef = FirestorePaths.incomeCol(uid).document(incomeId)
             docRef.delete().await()
             true
         } catch (e: Exception) {

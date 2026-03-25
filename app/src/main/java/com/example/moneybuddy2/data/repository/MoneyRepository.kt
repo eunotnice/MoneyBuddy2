@@ -10,9 +10,13 @@ interface MoneyRepository {
     suspend fun addIncome (uid: String, income: Income): Boolean
     suspend fun addExpense(uid: String, expense: Expense): Boolean
     suspend fun listLatestExpenses(uid: String, limit: Int = 20): List<Expense>
-
+    suspend fun getExpenseById(uid: String, expenseId: String): Expense?
+    suspend fun getIncomeById (uid: String, incomeId: String): Income?
     suspend fun updateExpense(uid: String, expense: Expense): Boolean
     suspend fun deleteExpense(uid: String, expenseId: String): Boolean
+
+    suspend fun updateIncome(uid: String, income: Income): Boolean
+    suspend fun deleteIncome(uid: String, incomeId: String): Boolean
 
     suspend fun getUserProfile(uid: String): UserProfile?
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.core.ocr.ParsedReceipt
 import com.example.moneybuddy2.core.ocr.ReceiptParser
+import com.example.moneybuddy2.core.ocr.ReceiptValidator
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.data.remote.FirebaseProvider
 import com.example.moneybuddy2.data.repository.MoneyRepository
@@ -48,8 +49,13 @@ class OcrViewModel (
     private val _ui = MutableStateFlow(OcrUiState())
     val ui: StateFlow<OcrUiState> = _ui
 
-    fun setImage(uri: Uri?){
-        _ui.value = _ui.value.copy(imageUri = uri, error = null)
+    fun setImage(uri: Uri?) {
+        _ui.value = _ui.value.copy(
+            imageUri = uri,
+            error = null,
+            rawText = "",
+            parsed = null
+        )
     }
 
     fun runOcr(context: android.content.Context) {
@@ -65,9 +71,19 @@ class OcrViewModel (
                 val image = InputImage.fromFilePath(context, uri)
                 val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                 val result = recognizer.process(image).await()
-
                 val raw = result.text ?: ""
-                Log.d(TAG, "OCR done. raw length=${raw.length}")
+                val validation = ReceiptValidator.validate(raw)
+                Log.d(TAG, "Receipt validation = $validation")
+
+                if (!validation.isReceipt) {
+                    _ui.value = _ui.value.copy(
+                        loading = false,
+                        rawText = raw,
+                        parsed = null,
+                        error = validation.reason
+                    )
+                    return@launch
+                }
                 val systemRules = """
     You extract purchase receipt fields from OCR text.
     IMPORTANT:
@@ -160,4 +176,15 @@ class OcrViewModel (
         Log.d(TAG, "========================")
     }
 
+    fun clearParsedResult() {
+        _ui.value = _ui.value.copy(
+            loading = false,
+            error = null,
+            rawText = "",
+            parsed = null
+        )
+    }
+
+
 }
+

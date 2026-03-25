@@ -31,17 +31,19 @@ fun ReceiptScanScreen(
     onBack: () -> Unit,
     onGoToConfirm: () -> Unit
 ) {
-    val app = (LocalContext.current.applicationContext as MoneyBuddyApp)
+    val context = LocalContext.current
+    val app = (context.applicationContext as MoneyBuddyApp)
     val repo = app.container.repository
+
     val vm: OcrViewModel = viewModel(
         viewModelStoreOwner = parentEntry,
         factory = remember(repo) { OcrViewModelFactory(repo) }
     )
-    val ui by vm.ui.collectAsState()
-    val context = LocalContext.current
 
+    val ui by vm.ui.collectAsStateWithLifecycle()
 
     var pendingUri by remember { mutableStateOf<Uri?>(null) }
+    var launchAttempted by remember { mutableStateOf(false) }
 
     val takePicture = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
@@ -51,7 +53,8 @@ fun ReceiptScanScreen(
             vm.setImage(uri)
             vm.runOcr(context)
         } else {
-            // user cancelled; no-op or set an error if you want
+            // user cancelled camera
+            onBack()
         }
     }
 
@@ -63,20 +66,23 @@ fun ReceiptScanScreen(
             pendingUri = uri
             takePicture.launch(uri)
         } else {
-            // You can set vm error or show snackbar
-            // vm.setError("Camera permission denied")
+            // optional: set error in VM instead
+            onBack()
         }
     }
 
     fun openCamera() {
         val hasCamera = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
         if (!hasCamera) {
-            // fallback to gallery in ReceiptPickScreen, or show error
+            // optional: vm.setError("No camera available on this device")
+            onBack()
             return
         }
 
-        val granted = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED
+        val granted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
 
         if (granted) {
             val uri = createReceiptImageUri(context)
@@ -87,9 +93,19 @@ fun ReceiptScanScreen(
         }
     }
 
-    // Navigate automatically when parsed is ready
+    // Auto-open camera once when this screen is first shown
+    LaunchedEffect(Unit) {
+        if (!launchAttempted) {
+            launchAttempted = true
+            openCamera()
+        }
+    }
+
+    // Navigate when OCR/parsing is ready
     LaunchedEffect(ui.parsed) {
-        if (ui.parsed != null) onGoToConfirm()
+        if (ui.parsed != null) {
+            onGoToConfirm()
+        }
     }
 
     Scaffold(
@@ -97,31 +113,34 @@ fun ReceiptScanScreen(
             TopAppBar(
                 title = { Text("Scan receipt") },
                 navigationIcon = {
-                    IconButton(onClick = onBack, enabled = !ui.loading) {
-                        Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back")
+                    IconButton(
+                        onClick = onBack,
+                        enabled = !ui.loading
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Back"
+                        )
                     }
                 }
             )
         }
     ) { padding ->
         Column(Modifier.padding(padding)) {
-            Button(
-                onClick = { openCamera() },
-                enabled = !ui.loading
-            ) {
-                Text(if (ui.loading) "Scanning..." else "Open camera")
-            }
-
-            if (ui.error != null) {
+            if (ui.loading) {
+                Text("Scanning...")
+            } else if (ui.error != null) {
                 Text(
                     text = ui.error!!,
                     color = MaterialTheme.colorScheme.error
                 )
-            }
 
-            // Optional: debug
-            // Text("Image: ${ui.imageUri}")
-            // Text("Raw len: ${ui.rawText.length}")
+                Button(onClick = { openCamera() }) {
+                    Text("Try again")
+                }
+            } else {
+                Text("Opening camera...")
+            }
         }
     }
 }

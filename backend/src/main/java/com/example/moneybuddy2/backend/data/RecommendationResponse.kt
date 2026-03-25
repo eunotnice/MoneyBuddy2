@@ -1,5 +1,10 @@
 package com.example.moneybuddy2.backend.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RecommendationResponse(
-    val cards: List<RecommendationCard>
+    val budgetPlan: BudgetPlanRecommendation,
+    val recommendations: List<SmartRecommendation>,
+    val summary: String
 )

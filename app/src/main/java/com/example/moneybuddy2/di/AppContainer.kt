@@ -15,7 +15,7 @@ import com.example.moneybuddy2.data.repository.MoneyRepositoryImpl
 import com.example.moneybuddy2.ui.viewmodel.CarbonViewModel
 import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
-import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
+//import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 import org.json.JSONArray
 
@@ -39,7 +39,7 @@ class AppContainer {
     // Shared OCR state between pick + confirm screens
     //val ocrViewModel: OcrViewModel by lazy { OcrViewModel(repository) }
     //val chatViewModel: ChatViewModel by lazy { ChatViewModel(ChatRepository) }
-    val recommendationViewModel: RecommendationViewModel by lazy { RecommendationViewModel(repository) }
+    //val recommendationViewModel: RecommendationViewModel by lazy { RecommendationViewModel(repository) }
 
     private fun loadFaqs(context: Context): List<FaqItem> {
         val json = context.assets.open("company_faq.json")

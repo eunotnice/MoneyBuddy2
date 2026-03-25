@@ -15,9 +15,10 @@ data class ExpenseUiState(
     val success: Boolean = false
 )
 
-class ExpenseViewModel (
+class ExpenseViewModel(
     private val repo: MoneyRepository
-) : ViewModel(){
+) : ViewModel() {
+
     private val _uiState = MutableStateFlow(ExpenseUiState())
     val uiState: StateFlow<ExpenseUiState> = _uiState
 
@@ -30,36 +31,93 @@ class ExpenseViewModel (
         onSuccess: () -> Unit
     ) {
         val user = FirebaseProvider.auth.currentUser
-        if(user == null){
+        if (user == null) {
             _uiState.value = ExpenseUiState(error = "User not logged in")
             return
         }
+
         _uiState.value = ExpenseUiState(loading = true)
 
-        val expense = Expense (
+        val expense = Expense(
             merchant = merchant.trim(),
             amount = amount,
             category = category,
-            description = description,
+            description = description.trim(),
             dateMillis = dateMillis,
             source = "manual"
         )
 
-        viewModelScope.launch{
+        viewModelScope.launch {
             val ok = repo.addExpense(user.uid, expense)
-            _uiState.value = if (ok) ExpenseUiState(success = true) else ExpenseUiState(error = "Failed to add expense")
+            _uiState.value = if (ok) {
+                ExpenseUiState(success = true)
+            } else {
+                ExpenseUiState(error = "Failed to add expense")
+            }
             if (ok) onSuccess()
         }
     }
 
-    fun updateExpense(uid: String, expense: Expense, onResult: (Boolean) -> Unit) {
+    fun updateManualExpense(
+        existingExpense: Expense,
+        merchant: String,
+        amount: Double,
+        category: String,
+        description: String,
+        dateMillis: Long,
+        onSuccess: () -> Unit
+    ) {
+        val user = FirebaseProvider.auth.currentUser
+        if (user == null) {
+            _uiState.value = ExpenseUiState(error = "User not logged in")
+            return
+        }
+
+        _uiState.value = ExpenseUiState(loading = true)
+
+        val updatedExpense = existingExpense.copy(
+            merchant = merchant.trim(),
+            amount = amount,
+            category = category,
+            description = description.trim(),
+            dateMillis = dateMillis
+        )
+
         viewModelScope.launch {
-            val success = repo.updateExpense(uid, expense)
-            onResult(success)
+            val ok = repo.updateExpense(user.uid, updatedExpense)
+            _uiState.value = if (ok) {
+                ExpenseUiState(success = true)
+            } else {
+                ExpenseUiState(error = "Failed to update expense")
+            }
+            if (ok) onSuccess()
         }
     }
 
-    fun clearStatus(){
+    fun deleteExpense(
+        expenseId: String,
+        onSuccess: () -> Unit
+    ) {
+        val user = FirebaseProvider.auth.currentUser
+        if (user == null) {
+            _uiState.value = ExpenseUiState(error = "User not logged in")
+            return
+        }
+
+        _uiState.value = ExpenseUiState(loading = true)
+
+        viewModelScope.launch {
+            val ok = repo.deleteExpense(user.uid, expenseId)
+            _uiState.value = if (ok) {
+                ExpenseUiState(success = true)
+            } else {
+                ExpenseUiState(error = "Failed to delete expense")
+            }
+            if (ok) onSuccess()
+        }
+    }
+
+    fun clearStatus() {
         _uiState.value = ExpenseUiState()
     }
 }

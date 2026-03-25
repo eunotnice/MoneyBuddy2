@@ -84,29 +84,29 @@ fun ProfileScreen (
 //                modifier = Modifier.fillMaxWidth()
 //            )
 
-            OutlinedTextField(
-                value = budgetText,
-                onValueChange = { budgetText = it },
-                label = { Text("Monthly budget") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            OutlinedTextField(
-                value = goalText,
-                onValueChange = { goalText = it },
-                label = { Text("Saving goal") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Currency (MVP: fixed, but kept as a field)
-            OutlinedTextField(
-                value = currency,
-                onValueChange = { currency = it },
-                label = { Text("Currency") },
-                modifier = Modifier.fillMaxWidth()
-            )
+//            OutlinedTextField(
+//                value = budgetText,
+//                onValueChange = { budgetText = it },
+//                label = { Text("Monthly budget") },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            OutlinedTextField(
+//                value = goalText,
+//                onValueChange = { goalText = it },
+//                label = { Text("Saving goal") },
+//                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//            // Currency (MVP: fixed, but kept as a field)
+//            OutlinedTextField(
+//                value = currency,
+//                onValueChange = { currency = it },
+//                label = { Text("Currency") },
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             Button(
                 onClick = {
