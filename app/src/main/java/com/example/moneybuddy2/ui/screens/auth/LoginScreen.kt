@@ -1,5 +1,7 @@
 package com.example.moneybuddy2.ui.screens.auth
 
+import com.example.moneybuddy2.R
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,24 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moneybuddy2.di.AppContainer
+import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.AuthUiState
 import com.example.moneybuddy2.ui.viewmodel.AuthViewModel
 
-// ─── Colour tokens ────────────────────────────────────────────────────────────
-private val GreenMint     = Color(0xFF00C896)
-private val GreenDark     = Color(0xFF009E78)
-private val GreenLight    = Color(0xFFE6FBF5)
-private val SurfaceGray   = Color(0xFFF7F8FA)
-private val CardWhite     = Color(0xFFFFFFFF)
-private val TextPrimary   = Color(0xFF1A1D23)
-private val TextSecondary = Color(0xFF6B7280)
-private val DividerColor  = Color(0xFFE5E7EB)
-private val RedSoft       = Color(0xFFE53935)
-private val RedLight      = Color(0xFFFFECEC)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// LOGIN SCREEN
-// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
@@ -97,7 +86,7 @@ fun LoginScreen(
                             if (passwordVisible) Icons.Outlined.VisibilityOff
                             else Icons.Outlined.Visibility,
                             contentDescription = "Toggle password",
-                            tint     = TextSecondary,
+                            tint     = AppColors.TextSecondary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -115,9 +104,9 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape    = RoundedCornerShape(14.dp),
             colors   = ButtonDefaults.buttonColors(
-                containerColor         = GreenMint,
+                containerColor         = AppColors.Primary,
                 contentColor           = Color.White,
-                disabledContainerColor = GreenMint.copy(alpha = 0.4f),
+                disabledContainerColor = AppColors.Primary.copy(alpha = 0.4f),
                 disabledContentColor   = Color.White.copy(alpha = 0.6f)
             )
         ) {
@@ -139,11 +128,12 @@ fun LoginScreen(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Don't have an account?", fontSize = 14.sp, color = TextSecondary)
+            Text("Don't have an account?", fontSize = 14.sp, color = AppColors.TextSecondary)
             TextButton(onClick = onGoToSignup) {
-                Text("Sign up", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GreenDark)
+                Text("Sign up", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = AppColors.PrimaryDark)
             }
         }
+        Spacer(Modifier.weight(0.5f))
     }
 }
 @Composable
@@ -151,16 +141,15 @@ private fun AuthScaffold(content: @Composable ColumnScope.() -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfaceGray)
+            .background(AppColors.Background)
     ) {
-        // Soft teal gradient wash at the top
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
                 .background(
                     Brush.verticalGradient(
-                        listOf(GreenMint.copy(alpha = 0.15f), Color.Transparent)
+                        listOf(AppColors.Primary.copy(alpha = 0.15f), Color.Transparent)
                     )
                 )
         )
@@ -168,8 +157,9 @@ private fun AuthScaffold(content: @Composable ColumnScope.() -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(top = 80.dp, bottom = 32.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            verticalArrangement =  Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
             content = content
         )
     }
@@ -180,33 +170,36 @@ private fun AuthHero(title: String, subtitle: String) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(76.dp)
-                .clip(CircleShape)
-                .background(Brush.radialGradient(listOf(GreenMint, GreenDark))),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Outlined.AccountBalance,
+//        Box(
+////            modifier = Modifier
+////                .size(76.dp)
+////                .clip(CircleShape)
+////                .background(AppColors.PrimaryLight),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(180.dp),
+//            contentAlignment = Alignment.Center
+//        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo2),
                 contentDescription = null,
-                tint     = Color.White,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(250.dp).offset(y = (50).dp)
+
             )
-        }
+ //       }
         Text(
             title,
             fontWeight = FontWeight.Bold,
             fontSize   = 26.sp,
-            color      = TextPrimary,
+            color      = AppColors.TextPrimary,
             textAlign  = TextAlign.Center
         )
         Text(
             subtitle,
             fontSize   = 14.sp,
-            color      = TextSecondary,
+            color      = AppColors.TextSecondary,
             textAlign  = TextAlign.Center,
             lineHeight = 20.sp
         )
@@ -218,7 +211,7 @@ private fun AuthCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(20.dp),
-        colors    = CardDefaults.cardColors(containerColor = CardWhite),
+        colors    = CardDefaults.cardColors(containerColor = AppColors.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp), content = content)
@@ -241,16 +234,16 @@ private fun AuthTextField(
         onValueChange        = onValueChange,
         modifier             = Modifier.fillMaxWidth(),
         label                = { Text(label, fontSize = 13.sp) },
-        placeholder          = { Text(placeholder, color = TextSecondary, fontSize = 13.sp) },
-        leadingIcon          = { Icon(icon, contentDescription = null, tint = GreenMint, modifier = Modifier.size(20.dp)) },
+        placeholder          = { Text(placeholder, color = AppColors.TextSecondary, fontSize = 13.sp) },
+        leadingIcon          = { Icon(icon, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(20.dp)) },
         trailingIcon         = trailingIcon,
         visualTransformation = visualTransformation,
         keyboardOptions      = KeyboardOptions(keyboardType = keyboardType),
         shape                = RoundedCornerShape(12.dp),
         singleLine           = true,
         colors               = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = GreenMint,
-            unfocusedBorderColor = DividerColor
+            focusedBorderColor   = AppColors.Primary,
+            unfocusedBorderColor = AppColors.Divider
         )
     )
 }
@@ -262,13 +255,13 @@ private fun AuthErrorBanner(error: String?) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
-                .background(RedLight)
+                .background(AppColors.ErrorLight)
                 .padding(14.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Outlined.Warning, contentDescription = null, tint = RedSoft)
-            Text(error, color = RedSoft, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Icon(Icons.Outlined.Warning, contentDescription = null, tint = AppColors.Error)
+            Text(error, color = AppColors.Error, fontSize = 13.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

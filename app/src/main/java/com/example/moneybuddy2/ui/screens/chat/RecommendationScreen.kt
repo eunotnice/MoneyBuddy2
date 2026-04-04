@@ -23,25 +23,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.AiRecommendationViewModel
 
-// ─────────────────────────────────────────────
-// Colour tokens (adjust to match your theme)
-// ─────────────────────────────────────────────
-private val GreenMint   = Color(0xFF00C896)
-private val GreenLight  = Color(0xFFE6FBF5)
-private val AmberWarm   = Color(0xFFFFB347)
-private val AmberLight  = Color(0xFFFFF4E0)
-private val BlueAccent  = Color(0xFF4A90E2)
-private val BlueLight   = Color(0xFFEAF2FF)
-private val RedSoft     = Color(0xFFFF6B6B)
-private val RedLight    = Color(0xFFFFECEC)
-private val PurpleAccent= Color(0xFF9B6DFF)
-private val PurpleLight = Color(0xFFF3EEFF)
-private val SurfaceGray = Color(0xFFF7F8FA)
-private val TextPrimary = Color(0xFF1A1D23)
-private val TextSecondary = Color(0xFF6B7280)
-private val DividerColor  = Color(0xFFE5E7EB)
+private val AmberLight     = Color(0xFFFFF9E6) // Soft Yellow Tint
+private val BlueAccent     = Color(0xFF2D74C4) // Slightly deepened for contrast
+private val BlueLight      = Color(0xFFEAF2FF) // Kept for cool-tone accents
+private val PurpleAccent   = Color(0xFF9159AF) // Lighter Purple (Secondary accent)
+private val PurpleLight    = Color(0xFFF9F5FB) // Minimal Purple Wash
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +46,7 @@ fun AiRecommendationScreen(
     var savingGoalNote  by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = SurfaceGray,
+        containerColor = AppColors.Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -143,7 +132,7 @@ fun AiRecommendationScreen(
                     shape = RoundedCornerShape(14.dp),
                     enabled = !ui.loading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = GreenMint,
+                        containerColor = AppColors.Primary,
                         contentColor   = Color.White
                     )
                 ) {
@@ -170,13 +159,13 @@ fun AiRecommendationScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(RedLight)
+                            .background(AppColors.ErrorLight)
                             .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = RedSoft)
-                        Text(err, color = RedSoft, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = AppColors.Error)
+                        Text(err, color = AppColors.Error, fontWeight = FontWeight.Medium, fontSize = 14.sp)
                     }
                 }
             }
@@ -192,7 +181,7 @@ fun AiRecommendationScreen(
                     ) {
                         Text(
                             text  = ui.summary,
-                            color = TextPrimary,
+                            color = AppColors.TextPrimary,
                             fontSize = 14.sp,
                             lineHeight = 22.sp
                         )
@@ -219,9 +208,9 @@ fun AiRecommendationScreen(
                                 Chip(
                                     label = "Confidence: ${plan.incomeConfidence}",
                                     color = when {
-                                        plan.incomeConfidence.contains("high", ignoreCase = true) -> GreenMint
-                                        plan.incomeConfidence.contains("low", ignoreCase = true)  -> RedSoft
-                                        else -> AmberWarm
+                                        plan.incomeConfidence.contains("high", ignoreCase = true) -> AppColors.Primary
+                                        plan.incomeConfidence.contains("low", ignoreCase = true)  -> AppColors.Error
+                                        else -> AppColors.PrimaryYellow
                                     }
                                 )
                             }
@@ -230,10 +219,10 @@ fun AiRecommendationScreen(
                                 BudgetRow(
                                     label  = "Monthly Income",
                                     amount = it,
-                                    color  = TextPrimary,
+                                    color  = AppColors.TextPrimary,
                                     isBold = true
                                 )
-                                HorizontalDivider(color = DividerColor)
+                                HorizontalDivider(color = AppColors.Divider)
                             }
 
                             plan.needsTarget?.let {
@@ -241,16 +230,16 @@ fun AiRecommendationScreen(
                                 BudgetBar(fraction = plan.needsTarget / (plan.incomeUsed ?: 1.0), color = BlueAccent)
                             }
                             plan.wantsTarget?.let {
-                                BudgetRow(label = "Wants (30%)",    amount = it, color = AmberWarm)
-                                BudgetBar(fraction = plan.wantsTarget / (plan.incomeUsed ?: 1.0), color = AmberWarm)
+                                BudgetRow(label = "Wants (30%)",    amount = it, color = AppColors.PrimaryYellow)
+                                BudgetBar(fraction = plan.wantsTarget / (plan.incomeUsed ?: 1.0), color = AppColors.PrimaryYellow)
                             }
                             plan.savingsTarget?.let {
-                                BudgetRow(label = "Savings (20%)",  amount = it, color = GreenMint)
-                                BudgetBar(fraction = plan.savingsTarget / (plan.incomeUsed ?: 1.0), color = GreenMint)
+                                BudgetRow(label = "Savings (20%)",  amount = it, color = AppColors.Primary)
+                                BudgetBar(fraction = plan.savingsTarget / (plan.incomeUsed ?: 1.0), color = AppColors.Primary)
                             }
 
                             if (plan.rationale.isNotBlank()) {
-                                HorizontalDivider(color = DividerColor)
+                                HorizontalDivider(color = AppColors.Divider)
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier
@@ -285,7 +274,7 @@ fun AiRecommendationScreen(
                         "Recommendations (${ui.recommendations.size})",
                         fontWeight = FontWeight.Bold,
                         fontSize   = 16.sp,
-                        color      = TextPrimary
+                        color      = AppColors.TextPrimary
                     )
                 }
 
@@ -323,14 +312,14 @@ fun AiRecommendationScreen(
                                     rec.title,
                                     fontWeight = FontWeight.Bold,
                                     fontSize   = 15.sp,
-                                    color      = TextPrimary,
+                                    color      = AppColors.TextPrimary,
                                     modifier   = Modifier.weight(1f)
                                 )
                                 Chip(label = priorityLabel(rec.priority), color = accent)
                             }
 
                             Spacer(Modifier.height(10.dp))
-                            HorizontalDivider(color = DividerColor)
+                            HorizontalDivider(color = AppColors.Divider)
                             Spacer(Modifier.height(10.dp))
 
                             // Message — formatted as bullet points if multi-sentence
@@ -352,11 +341,11 @@ fun AiRecommendationScreen(
                                                 .clip(CircleShape)
                                                 .background(accent)
                                         )
-                                        Text(sentence, fontSize = 14.sp, color = TextPrimary, lineHeight = 21.sp)
+                                        Text(sentence, fontSize = 14.sp, color = AppColors.TextPrimary, lineHeight = 21.sp)
                                     }
                                 }
                             } else {
-                                Text(rec.message, fontSize = 14.sp, color = TextPrimary, lineHeight = 21.sp)
+                                Text(rec.message, fontSize = 14.sp, color = AppColors.TextPrimary, lineHeight = 21.sp)
                             }
 
                             Spacer(Modifier.height(10.dp))
@@ -365,7 +354,7 @@ fun AiRecommendationScreen(
                             Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(SurfaceGray)
+                                    .background(AppColors.Background)
                                     .padding(horizontal = 8.dp, vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -373,14 +362,14 @@ fun AiRecommendationScreen(
                                 Icon(
                                     Icons.Outlined.Label,
                                     contentDescription = null,
-                                    tint = TextSecondary,
+                                    tint = AppColors.TextSecondary,
                                     modifier = Modifier.size(13.dp)
                                 )
                                 Text(
                                     rec.category.lowercase()
                                         .replaceFirstChar { it.uppercaseChar() },
                                     fontSize = 12.sp,
-                                    color    = TextSecondary,
+                                    color    = AppColors.TextSecondary,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -402,8 +391,8 @@ fun AiRecommendationScreen(
 private fun SectionCard(
     title: String,
     icon: ImageVector,
-    accentColor: Color = GreenMint,
-    accentBg: Color    = GreenLight,
+    accentColor: Color = AppColors.Primary,
+    accentBg: Color    = AppColors.PrimaryLight,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
@@ -426,7 +415,7 @@ private fun SectionCard(
                 ) {
                     Icon(icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(20.dp))
                 }
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextPrimary)
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = AppColors.TextPrimary)
             }
             content()
         }
@@ -446,12 +435,12 @@ private fun StyledTextField(
         onValueChange = onValueChange,
         modifier      = Modifier.fillMaxWidth(),
         label         = { Text(label, fontSize = 13.sp) },
-        placeholder   = { Text(placeholder, color = TextSecondary, fontSize = 13.sp) },
-        leadingIcon   = { Icon(icon, contentDescription = null, tint = GreenMint, modifier = Modifier.size(20.dp)) },
+        placeholder   = { Text(placeholder, color = AppColors.TextSecondary, fontSize = 13.sp) },
+        leadingIcon   = { Icon(icon, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(20.dp)) },
         shape         = RoundedCornerShape(12.dp),
         colors        = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = GreenMint,
-            unfocusedBorderColor = DividerColor
+            focusedBorderColor   = AppColors.Primary,
+            unfocusedBorderColor = AppColors.Divider
         )
     )
 }
@@ -478,7 +467,7 @@ private fun BudgetRow(label: String, amount: Double, color: Color, isBold: Boole
         Text(
             label,
             fontSize   = 14.sp,
-            color      = if (isBold) TextPrimary else TextSecondary,
+            color      = if (isBold) AppColors.TextPrimary else AppColors.TextSecondary,
             fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
         )
         Text(
@@ -531,9 +520,9 @@ private fun priorityLabel(priority: Any?): String = when (priority) {
 private fun priorityColors(priority: Any?): Pair<Color, Color> {
     val label = priorityLabel(priority).lowercase()
     return when {
-        label.contains("high")   -> RedSoft    to RedLight
-        label.contains("medium") -> AmberWarm  to AmberLight
-        label.contains("low")    -> GreenMint  to GreenLight
+        label.contains("high")   -> AppColors.Error    to AppColors.ErrorLight
+        label.contains("medium") -> AppColors.PrimaryYellow  to AmberLight
+        label.contains("low")    -> AppColors.Primary  to AppColors.PrimaryLight
         else                     -> BlueAccent to BlueLight
     }
 }

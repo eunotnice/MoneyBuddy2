@@ -29,22 +29,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moneybuddy2.core.Constants
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.di.AppContainer
+import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.ExpenseUiState
 import com.example.moneybuddy2.ui.viewmodel.ExpenseViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-// ─── Colour tokens ────────────────────────────────────────────────────────────
-private val GreenMint     = Color(0xFF00C896)
-private val GreenDark     = Color(0xFF009E78)
-private val GreenLight    = Color(0xFFE6FBF5)
-private val SurfaceGray   = Color(0xFFF7F8FA)
-private val CardWhite     = Color(0xFFFFFFFF)
-private val TextPrimary   = Color(0xFF1A1D23)
-private val TextSecondary = Color(0xFF6B7280)
-private val DividerColor  = Color(0xFFE5E7EB)
-private val RedSoft       = Color(0xFFE53935)
-private val RedLight      = Color(0xFFFFECEC)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,7 +88,7 @@ fun ManualAddExpenseScreen(
             !uiState.loading
 
     Scaffold(
-        containerColor = SurfaceGray,
+        containerColor = AppColors.Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -106,15 +96,15 @@ fun ManualAddExpenseScreen(
                         if (isEditMode) "Edit Expense" else "Add Expense",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = TextPrimary
+                        color = AppColors.TextPrimary
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.TextPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CardWhite)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Surface)
             )
         }
     ) { padding ->
@@ -161,12 +151,12 @@ fun ManualAddExpenseScreen(
                             onValueChange = { amountText = it },
                             modifier      = Modifier.fillMaxWidth(),
                             label         = { Text("Amount", fontSize = 13.sp) },
-                            placeholder   = { Text("0.00", color = TextSecondary, fontSize = 13.sp) },
+                            placeholder   = { Text("0.00", color = AppColors.TextSecondary, fontSize = 13.sp) },
                             prefix        = {
                                 Text(
                                     "RM ",
                                     fontWeight = FontWeight.Bold,
-                                    color = GreenDark,
+                                    color = AppColors.PrimaryDark,
                                     fontSize = 14.sp
                                 )
                             },
@@ -174,7 +164,7 @@ fun ManualAddExpenseScreen(
                                 Icon(
                                     Icons.Outlined.AttachMoney,
                                     contentDescription = null,
-                                    tint = GreenMint,
+                                    tint = AppColors.Primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             },
@@ -182,12 +172,12 @@ fun ManualAddExpenseScreen(
                             shape   = RoundedCornerShape(12.dp),
                             isError = amountText.isNotBlank() && !amountValid,
                             supportingText = if (amountText.isNotBlank() && !amountValid) {
-                                { Text("Enter a valid amount", color = RedSoft, fontSize = 11.sp) }
+                                { Text("Enter a valid amount", color = AppColors.Error, fontSize = 11.sp) }
                             } else null,
                             colors  = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor   = GreenMint,
-                                unfocusedBorderColor = DividerColor,
-                                errorBorderColor     = RedSoft
+                                focusedBorderColor   = AppColors.Primary,
+                                unfocusedBorderColor = AppColors.Divider,
+                                errorBorderColor     = AppColors.Error
                             )
                         )
 
@@ -228,8 +218,8 @@ fun ManualAddExpenseScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape    = RoundedCornerShape(12.dp),
-                        colors   = ButtonDefaults.outlinedButtonColors(contentColor = GreenDark),
-                        border   = androidx.compose.foundation.BorderStroke(1.dp, GreenMint)
+                        colors   = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.PrimaryDark),
+                        border   = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Primary)
                     ) {
                         Icon(
                             Icons.Outlined.Event,
@@ -251,13 +241,13 @@ fun ManualAddExpenseScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .background(RedLight)
+                            .background(AppColors.ErrorLight)
                             .padding(14.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Outlined.Warning, contentDescription = null, tint = RedSoft)
-                        Text(uiState.error!!, color = RedSoft, fontSize = 13.sp)
+                        Icon(Icons.Outlined.Warning, contentDescription = null, tint = AppColors.Error)
+                        Text(uiState.error!!, color = AppColors.Error, fontSize = 13.sp)
                     }
                 }
 
@@ -299,9 +289,9 @@ fun ManualAddExpenseScreen(
                         .height(52.dp),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = GreenMint,
+                        containerColor = AppColors.Primary,
                         contentColor = Color.White,
-                        disabledContainerColor = GreenMint.copy(alpha = 0.4f),
+                        disabledContainerColor = AppColors.Primary.copy(alpha = 0.4f),
                         disabledContentColor = Color.White.copy(alpha = 0.6f)
                     )
                 ) {
@@ -336,7 +326,7 @@ fun ManualAddExpenseScreen(
                             .fillMaxWidth()
                             .height(52.dp),
                         shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = RedSoft)
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error)
                     ) {
                         Text("Delete Expense", fontWeight = FontWeight.SemiBold)
                     }
@@ -356,7 +346,7 @@ fun ManualAddExpenseScreen(
                                         }
                                     }
                                 ) {
-                                    Text("Delete", color = RedSoft)
+                                    Text("Delete", color = AppColors.Error)
                                 }
                             },
                             dismissButton = {
@@ -406,10 +396,10 @@ private fun CategoryGrid(selected: String, onSelect: (String) -> Unit) {
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(if (isSelected) meta.color.copy(alpha = 0.15f) else CardWhite)
+                            .background(if (isSelected) meta.color.copy(alpha = 0.15f) else AppColors.Surface)
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) meta.color else DividerColor,
+                                color = if (isSelected) meta.color else AppColors.Divider,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable { onSelect(meta.name) }
@@ -421,7 +411,7 @@ private fun CategoryGrid(selected: String, onSelect: (String) -> Unit) {
                         Text(
                             meta.name,
                             fontSize   = 9.sp,
-                            color      = if (isSelected) meta.color else TextSecondary,
+                            color      = if (isSelected) meta.color else AppColors.TextSecondary,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             maxLines   = 1
                         )
@@ -442,7 +432,7 @@ private fun FormCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(16.dp),
-        colors    = CardDefaults.cardColors(containerColor = CardWhite),
+        colors    = CardDefaults.cardColors(containerColor = AppColors.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -463,12 +453,12 @@ private fun FormSectionLabel(icon: ImageVector, label: String) {
             modifier = Modifier
                 .size(30.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(GreenLight),
+                .background(AppColors.PrimaryLight),
             contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, tint = GreenDark, modifier = Modifier.size(16.dp))
+            Icon(icon, contentDescription = null, tint = AppColors.PrimaryDark, modifier = Modifier.size(16.dp))
         }
-        Text(label, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = TextPrimary)
+        Text(label, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = AppColors.TextPrimary)
     }
 }
 
@@ -487,17 +477,17 @@ private fun StyledTextField(
         onValueChange = onValueChange,
         modifier      = Modifier.fillMaxWidth(),
         label         = { Text(label, fontSize = 13.sp) },
-        placeholder   = { Text(placeholder, color = TextSecondary, fontSize = 13.sp) },
+        placeholder   = { Text(placeholder, color = AppColors.TextSecondary, fontSize = 13.sp) },
         leadingIcon   = {
-            Icon(icon, contentDescription = null, tint = GreenMint, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
         },
         shape    = RoundedCornerShape(12.dp),
         isError  = isError,
         minLines = minLines,
         colors   = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor   = GreenMint,
-            unfocusedBorderColor = DividerColor,
-            errorBorderColor     = RedSoft
+            focusedBorderColor   = AppColors.Primary,
+            unfocusedBorderColor = AppColors.Divider,
+            errorBorderColor     = AppColors.Error
         )
     )
 }

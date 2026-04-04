@@ -50,9 +50,9 @@ class ProfileViewModel (
             return
         }
 
+        val existing = _uiState.value.profile
         _uiState.value = ProfileUiState(loading = true,error=null, saved=false)
 
-        val existing = _uiState.value.profile
 
         val profile = UserProfile(
             uid = user.uid,

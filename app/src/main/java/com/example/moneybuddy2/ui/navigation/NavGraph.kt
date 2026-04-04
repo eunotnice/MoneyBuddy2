@@ -33,7 +33,6 @@ import androidx.navigation.compose.composable
 import com.example.moneybuddy2.ui.screens.auth.LoginScreen
 import com.example.moneybuddy2.ui.screens.auth.SignupScreen
 import com.example.moneybuddy2.ui.screens.home.HomeScreen
-import com.example.moneybuddy2.ui.screens.settings.SettingsScreen
 import com.example.moneybuddy2.ui.screens.expense.ManualAddExpenseScreen
 import com.example.moneybuddy2.ui.screens.profile.ProfileScreen
 import com.example.moneybuddy2.ui.screens.ocr.ReceiptScanScreen
@@ -89,6 +88,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.sp
+import com.example.moneybuddy2.game.screens.IntroScreen
+import com.example.moneybuddy2.ui.theme.AppColors
 
 @Composable
 fun AppNavGraph(navController: NavHostController, startDestination: String) {
@@ -159,7 +160,9 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                         navController.navigate(Routes.ADD_EXPENSE)
                     },
                     onOpenProfile = {
-                        navController.navigate(Routes.PROFILE)
+                        navController.navigate(Routes.PROFILE){
+                            launchSingleTop = true
+                        }
                     },
                     onAddReceipt = {
                         Log.d(TAG, "onAddReceipt clicked")
@@ -180,32 +183,47 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                 )
             }
 
-            composable(Routes.GAME) { backStackEntry ->
 
-                val gameViewModel: SimulatorViewModel = viewModel(backStackEntry)
 
-                SimulatorScreen(
-                    viewModel = gameViewModel,
-                    onSimulate = {
-                        navController.navigate(Routes.RESULT)
-                    }
-                )
-            }
-
-            composable(Routes.RESULT) { backStackEntry ->
-
-                val parentEntry = remember(backStackEntry) {
-                    navController.getBackStackEntry(Routes.GAME)
+            navigation(
+                startDestination = Routes.GAME_INTRO,
+                route = Routes.GAME_GRAPH
+            ) {
+                composable(Routes.GAME_INTRO) {
+                    IntroScreen(
+                        onStart = { navController.navigate(Routes.GAME) }
+                    )
                 }
 
-                val gameViewModel: SimulatorViewModel = viewModel(parentEntry)
-
-                ResultScreen(
-                    viewModel = gameViewModel,
-                    onReset = {
-                        navController.popBackStack()
+                composable(Routes.GAME) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry(Routes.GAME_GRAPH)
                     }
-                )
+                    val gameViewModel: SimulatorViewModel = viewModel(parentEntry)
+
+                    SimulatorScreen(
+                        viewModel = gameViewModel,
+                        onSimulate = {
+                            navController.navigate(Routes.RESULT)
+                        }
+                    )
+                }
+
+                composable(Routes.RESULT) { backStackEntry ->
+
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry(Routes.GAME_GRAPH)
+                    }
+
+                    val gameViewModel: SimulatorViewModel = viewModel(parentEntry)
+
+                    ResultScreen(
+                        viewModel = gameViewModel,
+                        onReset = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
 
             composable(Routes.PROFILE){
@@ -220,7 +238,12 @@ fun AppNavGraph(navController: NavHostController, startDestination: String) {
                             popUpTo(Routes.HOME) { inclusive = true }
                         }
                     },
-                    onBack = { navController.popBackStack()}
+                    onBack = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.PROFILE) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 
@@ -411,14 +434,12 @@ fun AppBottomBar(navController: NavHostController) {
     val noBottomBarScreens = listOf("login", "signup")
 
 
-    val selectedTab = when (currentRoute) {
-        Routes.HOME -> BottomNavItem.Home
-        Routes.RECOMMENDATIONS -> BottomNavItem.Tools
-        Routes.CHAT -> BottomNavItem.Chat
-        Routes.RECEIPT_PICK, Routes.RECEIPT_CONFIRM, Routes.RECEIPT_GRAPH -> BottomNavItem.Receipt
-        Routes.GAME -> BottomNavItem.Game
-        //Routes.PROFILE -> BottomNavItem.Profile
-        //Routes.SETTINGS -> BottomNavItem.Settings
+    val selectedTab = when {
+        currentRoute == Routes.HOME -> BottomNavItem.Home
+        currentRoute == Routes.RECOMMENDATIONS -> BottomNavItem.Tools
+        currentRoute == Routes.CHAT -> BottomNavItem.Chat
+        currentRoute in setOf(Routes.RECEIPT_PICK, Routes.RECEIPT_CONFIRM, Routes.RECEIPT_GRAPH) -> BottomNavItem.Receipt
+        currentRoute in setOf(Routes.GAME_GRAPH, Routes.GAME_INTRO, Routes.GAME, Routes.RESULT) -> BottomNavItem.Game
         else -> null
     }
 
@@ -428,8 +449,6 @@ fun AppBottomBar(navController: NavHostController) {
         BottomNavItem.Receipt,
         BottomNavItem.Chat,
         BottomNavItem.Game
-        //BottomNavItem.Profile
-       // BottomNavItem.Settings
     )
 
     var showReceiptSheet by rememberSaveable{ mutableStateOf(false) }
@@ -462,27 +481,61 @@ fun AppBottomBar(navController: NavHostController) {
         }
     }
 
+
     if(currentRoute !in noBottomBarScreens){
-        NavigationBar {
+        NavigationBar (
+            containerColor = AppColors.Surface
+        ){
             items.forEach { item ->
                 val selected = selectedTab == item
 
                 NavigationBarItem(
                     selected = selected,
                     onClick = {
-                        if(item == BottomNavItem.Receipt){
+                        if (item == BottomNavItem.Receipt) {
                             showReceiptSheet = true
                             return@NavigationBarItem
                         }
 
-                        navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
+                        when (item) {
+                            BottomNavItem.Game -> {
+                                navController.navigate(Routes.GAME_GRAPH) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = false        // always restart game from intro
+                                }
                             }
-                            launchSingleTop = true
-                            restoreState = true
+                            BottomNavItem.Home -> {
+                                navController.navigate(Routes.HOME) {
+                                    popUpTo(Routes.HOME) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }
+                            BottomNavItem.Tools -> {
+                                navController.navigate(Routes.RECOMMENDATIONS) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true         // keep state
+                                }
+                            }
+                            BottomNavItem.Chat -> {
+                                navController.navigate(Routes.CHAT) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true         // keep state
+                                }
+                            }
+                            else -> {}
                         }
                     },
+                    colors = NavigationBarItemDefaults.colors(
+                        // This ensures the "pill" behind the icon is also correct
+                        indicatorColor = Color.Transparent,
+                        selectedIconColor = AppColors.Primary,
+                        unselectedIconColor = AppColors.TextSecondary,
+                        selectedTextColor = AppColors.Primary,
+                        unselectedTextColor = AppColors.TextSecondary
+                    ),
                     icon = { Icon(item.icon, contentDescription = item.label) },
                     label = {
                         Text(
@@ -496,13 +549,8 @@ fun AppBottomBar(navController: NavHostController) {
     }
 }
 
-private val GreenMint     = Color(0xFF00C896)
-private val GreenLight    = Color(0xFFE6FBF5)
-private val TextPrimary   = Color(0xFF1A1D23)
-private val TextSecondary = Color(0xFF6B7280)
-private val DividerColor  = Color(0xFFE5E7EB)
-private val CardWhite     = Color(0xFFFFFFFF)
 
+// ─── Colour tokens ──────────────────────────────────────────────────────────
 @Composable
 fun ReceiptEntrySheet(
     onIncome: () -> Unit,
@@ -513,6 +561,7 @@ fun ReceiptEntrySheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .background(AppColors.Surface) // Ensure the sheet itself is pure white
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(0.dp)
@@ -524,7 +573,7 @@ fun ReceiptEntrySheet(
                 .padding(top = 12.dp, bottom = 20.dp)
                 .size(width = 36.dp, height = 4.dp)
                 .clip(RoundedCornerShape(50))
-                .background(DividerColor)
+                .background(AppColors.Divider)
         )
 
         // ── Header ───────────────────────────────────────────────────────
@@ -532,22 +581,24 @@ fun ReceiptEntrySheet(
             "Add Transaction",
             fontWeight = FontWeight.Bold,
             fontSize   = 20.sp,
-            color      = TextPrimary
+            color      = AppColors.TextPrimary
         )
         Spacer(Modifier.height(4.dp))
         Text(
             "Choose how you'd like to add",
             fontSize = 14.sp,
-            color    = TextSecondary
+            color    = AppColors.TextSecondary
         )
 
         Spacer(Modifier.height(20.dp))
 
         // ── Action tiles ─────────────────────────────────────────────────
+
+        // Income: Using the brand Yellow (#FFC915)
         EntryOption(
             icon        = Icons.Outlined.TrendingUp,
-            iconBg      = Color(0xFFE8F5E9),
-            iconTint    = Color(0xFF2E7D32),
+            iconBg      = Color(0xFFFFF9E6), // Very light yellow tint
+            iconTint    = Color(0xFFFFC915), // Brand Amber
             title       = "Add Income",
             subtitle    = "Record salary, bonus, freelance & more",
             onClick     = onIncome
@@ -555,10 +606,11 @@ fun ReceiptEntrySheet(
 
         OptionDivider()
 
+        // Manual: Using a neutral Gray or Purple tint
         EntryOption(
             icon        = Icons.Outlined.Edit,
-            iconBg      = Color(0xFFEAF2FF),
-            iconTint    = Color(0xFF1565C0),
+            iconBg      = AppColors.PrimaryLight,        // Your new light purple tint (#F3EBF7)
+            iconTint    = AppColors.Primary,         // Your brand purple (#652F80)
             title       = "Enter Manually",
             subtitle    = "Type merchant, amount, category & date",
             onClick     = onManual
@@ -566,10 +618,11 @@ fun ReceiptEntrySheet(
 
         OptionDivider()
 
+        // Scan: Highlighting this with Brand Purple
         EntryOption(
             icon        = Icons.Outlined.PhotoCamera,
-            iconBg      = GreenLight,
-            iconTint    = GreenMint,
+            iconBg      = AppColors.PrimaryLight,        // Your new light purple tint
+            iconTint    = AppColors.Primary,         // Your brand purple
             title       = "Scan Receipt",
             subtitle    = "Capture a receipt using your camera",
             onClick     = onScanCamera
@@ -577,10 +630,11 @@ fun ReceiptEntrySheet(
 
         OptionDivider()
 
+        // Gallery: Using a softer variation
         EntryOption(
             icon        = Icons.Outlined.PhotoLibrary,
-            iconBg      = Color(0xFFF3EEFF),
-            iconTint    = Color(0xFF6A1B9A),
+            iconBg      = Color(0xFFF7F8FA), // AppColors.Background
+            iconTint    = AppColors.TextSecondary,     // Muted gray for secondary action
             title       = "Upload from Gallery",
             subtitle    = "Pick an existing receipt image",
             onClick     = onUploadGallery
@@ -629,12 +683,12 @@ private fun EntryOption(
                 title,
                 fontWeight = FontWeight.SemiBold,
                 fontSize   = 15.sp,
-                color      = TextPrimary
+                color      = AppColors.TextPrimary
             )
             Text(
                 subtitle,
                 fontSize   = 13.sp,
-                color      = TextSecondary,
+                color      = AppColors.TextSecondary,
                 lineHeight = 18.sp
             )
         }
@@ -643,7 +697,7 @@ private fun EntryOption(
         Icon(
             Icons.Outlined.ChevronRight,
             contentDescription = null,
-            tint     = DividerColor,
+            tint     = AppColors.Divider,
             modifier = Modifier.size(20.dp)
         )
     }
@@ -653,7 +707,7 @@ private fun EntryOption(
 private fun OptionDivider() {
     HorizontalDivider(
         modifier  = Modifier.padding(start = 60.dp),
-        color     = DividerColor,
+        color     = AppColors.Divider,
         thickness = 0.8.dp
     )
 }

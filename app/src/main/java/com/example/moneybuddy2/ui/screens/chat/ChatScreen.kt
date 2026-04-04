@@ -28,21 +28,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.Role
+import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-// ─── Colour tokens (kept consistent with AiRecommendationScreen) ───────────
-private val GreenMint     = Color(0xFF00C896)
-private val GreenDark     = Color(0xFF009E78)
-private val GreenBubble   = Color(0xFFE6FBF5)
-private val SurfaceGray   = Color(0xFFF7F8FA)
-private val BotBubble     = Color(0xFFFFFFFF)
-private val TextPrimary   = Color(0xFF1A1D23)
-private val TextSecondary = Color(0xFF6B7280)
-private val DividerColor  = Color(0xFFE5E7EB)
-private val RedSoft       = Color(0xFFFF6B6B)
-private val RedLight      = Color(0xFFFFECEC)
+private val PurpleBubble    = Color(0xFFF3EBF7) 
+private val BotBubble      = Color(0xFFFFFFFF)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +54,7 @@ fun ChatScreen(
     }
 
     Scaffold(
-        containerColor = SurfaceGray,
+        containerColor = AppColors.Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -75,7 +67,7 @@ fun ChatScreen(
                             modifier = Modifier
                                 .size(34.dp)
                                 .clip(CircleShape)
-                                .background(GreenMint),
+                                .background(AppColors.Primary),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -90,19 +82,19 @@ fun ChatScreen(
                                 "MoneyBuddy",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                color = TextPrimary
+                                color = AppColors.TextPrimary
                             )
                             Text(
                                 "Your financial assistant",
                                 fontSize = 11.sp,
-                                color = TextSecondary
+                                color = AppColors.TextSecondary
                             )
                         }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimary)
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = AppColors.TextPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -135,20 +127,25 @@ fun ChatScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(RedLight)
+                            .background(AppColors.ErrorLight)
                             .padding(horizontal = 16.dp, vertical = 10.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("⚠", color = RedSoft, fontSize = 14.sp)
-                        Text(err, color = RedSoft, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Text("⚠", color = AppColors.Error, fontSize = 14.sp)
+                        Text(err, color = AppColors.Error, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
 
             // Empty state
             if (ui.messages.isEmpty()) {
-                EmptyState(modifier = Modifier.weight(1f))
+                EmptyState(
+                    modifier = Modifier.weight(1f),
+                    onSuggestionClick = { clickedText ->
+                        input = clickedText // This "autofills" the text field
+                    }
+                )
             } else {
                 LazyColumn(
                     state = listState,
@@ -175,7 +172,7 @@ fun ChatScreen(
 }
 
 @Composable
-private fun EmptyState(modifier: Modifier = Modifier) {
+private fun EmptyState(modifier: Modifier = Modifier, onSuggestionClick: (String) -> Unit) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Center,
@@ -185,13 +182,13 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(GreenBubble),
+                .background(PurpleBubble),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 Icons.Outlined.AccountBalance,
                 contentDescription = null,
-                tint = GreenMint,
+                tint = AppColors.Primary,
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -200,13 +197,13 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             "Hi! I'm MoneyBuddy 👋",
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = TextPrimary
+            color = AppColors.TextPrimary
         )
         Spacer(Modifier.height(6.dp))
         Text(
             "Ask me anything about your spending,\nbudgeting, or financial goals.",
             fontSize = 14.sp,
-            color = TextSecondary,
+            color = AppColors.TextSecondary,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
@@ -220,16 +217,16 @@ private fun EmptyState(modifier: Modifier = Modifier) {
         )
         suggestions.forEach { suggestion ->
             SuggestionChip(
-                onClick = { /* vm.send(suggestion) */ },
+                onClick = { onSuggestionClick(suggestion) },
                 label = { Text(suggestion, fontSize = 13.sp) },
                 modifier = Modifier.padding(vertical = 4.dp),
                 colors = SuggestionChipDefaults.suggestionChipColors(
                     containerColor = Color.White,
-                    labelColor = GreenDark
+                    labelColor = AppColors.PrimaryDark
                 ),
                 border = SuggestionChipDefaults.suggestionChipBorder(
                     enabled = true,
-                    borderColor = GreenMint
+                    borderColor = AppColors.Primary
                 )
             )
         }
@@ -248,7 +245,7 @@ fun MessageBubble(message: ChatMessage) {
         Text(
             text = if (isUser) "You" else "MoneyBuddy",
             fontSize = 11.sp,
-            color = TextSecondary,
+            color = AppColors.TextSecondary,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
         )
@@ -265,7 +262,7 @@ fun MessageBubble(message: ChatMessage) {
                         .padding(end = 6.dp, bottom = 2.dp)
                         .size(28.dp)
                         .clip(CircleShape)
-                        .background(GreenMint),
+                        .background(AppColors.Primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Text("M", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -284,7 +281,7 @@ fun MessageBubble(message: ChatMessage) {
                             bottomEnd = if (isUser) 4.dp else 18.dp
                         )
                     )
-                    .background(if (isUser) GreenMint else BotBubble)
+                    .background(if (isUser) AppColors.Primary else BotBubble)
                     .then(
                         if (!isUser) Modifier.padding(1.dp) else Modifier
                     )
@@ -292,7 +289,7 @@ fun MessageBubble(message: ChatMessage) {
             ) {
                 Text(
                     text = message.text,
-                    color = if (isUser) Color.White else TextPrimary,
+                    color = if (isUser) Color.White else AppColors.TextPrimary,
                     fontSize = 14.sp,
                     lineHeight = 21.sp
                 )
@@ -308,7 +305,7 @@ fun MessageBubble(message: ChatMessage) {
                         .background(Color(0xFFE5E7EB)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("U", color = TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("U", color = AppColors.TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -329,7 +326,7 @@ private fun TypingIndicator() {
                 .padding(end = 6.dp, bottom = 2.dp)
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(GreenMint),
+                .background(AppColors.Primary),
             contentAlignment = Alignment.Center
         ) {
             Text("M", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -357,7 +354,7 @@ private fun TypingIndicator() {
                             .offset(y = offsetY.dp)
                             .size(7.dp)
                             .clip(CircleShape)
-                            .background(GreenMint)
+                            .background(AppColors.Primary)
                     )
                 }
             }
@@ -391,7 +388,7 @@ private fun ChatInputBar(
                 placeholder = {
                     Text(
                         "Ask about spending or budgeting…",
-                        color = TextSecondary,
+                        color = AppColors.TextSecondary,
                         fontSize = 14.sp
                     )
                 },
@@ -401,10 +398,10 @@ private fun ChatInputBar(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = { onSend() }),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor   = GreenMint,
-                    unfocusedBorderColor = DividerColor,
-                    focusedContainerColor   = SurfaceGray,
-                    unfocusedContainerColor = SurfaceGray
+                    focusedBorderColor   = AppColors.Primary,
+                    unfocusedBorderColor = AppColors.Divider,
+                    focusedContainerColor   = AppColors.Background,
+                    unfocusedContainerColor = AppColors.Background
                 )
             )
 
@@ -414,7 +411,7 @@ private fun ChatInputBar(
                     .size(48.dp)
                     .clip(CircleShape)
                     .background(
-                        if (input.isNotBlank() && !sending) GreenMint
+                        if (input.isNotBlank() && !sending) AppColors.Primary
                         else Color(0xFFE5E7EB)
                     ),
                 contentAlignment = Alignment.Center
@@ -422,7 +419,7 @@ private fun ChatInputBar(
                 if (sending) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = GreenMint,
+                        color = AppColors.Primary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -433,7 +430,7 @@ private fun ChatInputBar(
                         Icon(
                             Icons.Default.Send,
                             contentDescription = "Send",
-                            tint = if (input.isNotBlank()) Color.White else TextSecondary,
+                            tint = if (input.isNotBlank()) Color.White else AppColors.TextSecondary,
                             modifier = Modifier.size(20.dp)
                         )
                     }

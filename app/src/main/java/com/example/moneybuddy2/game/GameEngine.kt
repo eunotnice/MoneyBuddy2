@@ -2,16 +2,8 @@ package com.example.moneybuddy2.game
 
 import kotlin.math.pow
 
-/**
- * Pure calculation engine — no Android dependencies.
- * Easily unit-testable.
- */
 object SimulationEngine {
 
-    /**
-     * Run the full compound-interest simulation and return results.
-     * Returns null if [input] is invalid.
-     */
     fun simulate(input: SimulationInput): SimulationResult? {
         if (!input.isValid) return null
 

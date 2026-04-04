@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.viewmodel.HomeUiState
 import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 import java.text.NumberFormat
+import androidx.compose.foundation.verticalScroll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.Month
@@ -41,21 +43,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.abs
 import com.example.moneybuddy2.R
+import com.example.moneybuddy2.ui.theme.AppColors
 
-// ─── Colour tokens ──────────────────────────────────────────────────────────
-private val GreenMint      = Color(0xFF00C896)
-private val GreenDark      = Color(0xFF009E78)
-private val GreenLight     = Color(0xFFE6FBF5)
-private val SurfaceGray    = Color(0xFFF7F8FA)
-private val TextPrimary    = Color(0xFF1A1D23)
-private val TextSecondary  = Color(0xFF6B7280)
-private val DividerColor   = Color(0xFFE5E7EB)
-private val RedSoft        = Color(0xFFE53935)
-private val AmberWarm      = Color(0xFFFFB300)
-private val PurpleDeep     = Color(0xFF5A2D82)
-private val CardWhite      = Color(0xFFFFFFFF)
-
-// ─── Sealed class (unchanged) ────────────────────────────────────────────────
 sealed class TransactionItem {
     abstract val id: String
     abstract val dataMillis: Long
@@ -71,7 +60,6 @@ sealed class TransactionItem {
     }
 }
 
-// ─── Entry point ─────────────────────────────────────────────────────────────
 @Composable
 fun HomeScreen(
     vm: HomeViewModel,
@@ -90,7 +78,7 @@ fun HomeScreen(
     val ui by vm.uiState.collectAsState()
 
     LaunchedEffect(Unit) { vm.loadHome() }
-    LaunchedEffect(ui.needsProfileSetup) { if (ui.needsProfileSetup) onOpenProfile() }
+    //LaunchedEffect(ui.needsProfileSetup) { if (ui.needsProfileSetup) onOpenProfile() }
 
     HomeScreenContent(
         ui = ui,
@@ -129,6 +117,12 @@ fun HomeScreenContent(
     onEditIncome: (String) -> Unit,
     onEditExpense: (String) -> Unit
 ) {
+
+    var showCarbonInfo by remember { mutableStateOf(false) }
+
+    if (showCarbonInfo) {
+        CarbonMethodologySheet(onDismiss = { showCarbonInfo = false })
+    }
     val zoneId = ZoneId.systemDefault()
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }
 
@@ -144,7 +138,7 @@ fun HomeScreenContent(
         }
 
     Scaffold(
-        containerColor = SurfaceGray,
+        containerColor = AppColors.Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -162,14 +156,14 @@ fun HomeScreenContent(
                             Image(
                                 painter = painterResource(id = R.drawable.logo),
                                 contentDescription = null,
-                                modifier = Modifier.size(25.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
                         Text(
                             "MoneyBuddy",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = TextPrimary
+                            color = AppColors.TextPrimary
                         )
                     }
                 },
@@ -178,18 +172,18 @@ fun HomeScreenContent(
                         Icon(
                             Icons.Default.Analytics,
                             contentDescription = "Analytics",
-                            tint = TextSecondary
+                            tint = AppColors.TextSecondary
                         )
                     }
                     IconButton(onClick = onOpenProfile) {
                         Icon(
                             Icons.Default.Settings,
                             contentDescription = "Settings",
-                            tint = TextSecondary
+                            tint = AppColors.TextSecondary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = CardWhite)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.Surface)
             )
         }
     ) { padding ->
@@ -207,8 +201,8 @@ fun HomeScreenContent(
                 item {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
-                        color = GreenMint,
-                        trackColor = GreenLight
+                        color = AppColors.Primary,
+                        trackColor = AppColors.PrimaryLight
                     )
                 }
             }
@@ -223,8 +217,8 @@ fun HomeScreenContent(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Warning, contentDescription = null, tint = RedSoft)
-                        Text(err, color = RedSoft, fontSize = 13.sp)
+                        Icon(Icons.Default.Warning, contentDescription = null, tint = AppColors.Error)
+                        Text(err, color = AppColors.Error, fontSize = 13.sp)
                     }
                 }
             }
@@ -247,13 +241,77 @@ fun HomeScreenContent(
                 )
             }
 
-            // ── Carbon footprint pill ────────────────────────────────────
+//            item {
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(12.dp))
+//                        .background(AppColors.Surface)
+//                        .padding(horizontal = 16.dp, vertical = 12.dp),
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                ) {
+//                    Box(
+//                        modifier = Modifier
+//                            .size(36.dp)
+//                            .clip(CircleShape)
+//                            .background(AppColors.PrimaryLight),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Text("🌱", fontSize = 16.sp)
+//                    }
+//                    Column {
+//                        Text(
+//                            "Carbon footprint",
+//                            fontSize = 12.sp,
+//                            color = AppColors.TextSecondary,
+//                            fontWeight = FontWeight.Medium
+//                        )
+//                        Text(
+//                            when {
+//                                ui.carbonLoading -> "Calculating…"
+//                                ui.monthlyCarbonKg != null ->
+//                                    "%.2f kgCO₂e this month".format(ui.monthlyCarbonKg)
+//                                else -> "No data yet"
+//                            },
+//                            fontSize = 14.sp,
+//                            color = AppColors.TextPrimary,
+//                            fontWeight = FontWeight.SemiBold
+//                        )
+//                        // ── Disclaimer ───────────────────────────────────
+//                        if (!ui.carbonLoading && ui.monthlyCarbonKg != null) {
+//                            Spacer(Modifier.height(2.dp))
+//                            Row(
+//                                verticalAlignment = Alignment.CenterVertically,
+//                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+//                            ) {
+//                                Icon(
+//                                    Icons.Outlined.Info,
+//                                    contentDescription = null,
+//                                    tint = AppColors.TextSecondary,
+//                                    modifier = Modifier.size(11.dp)
+//                                )
+//                                Text(
+//                                    "Based on estimates — actual emissions may vary",
+//                                    fontSize = 10.sp,
+//                                    color = AppColors.TextSecondary,
+//                                    lineHeight = 13.sp
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+
+
+// ── Inside your LazyColumn ───────────────────────────────────
             item {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(12.dp))
-                        .background(CardWhite)
+                        .background(AppColors.Surface)
+                        .clickable { showCarbonInfo = true }   // whole pill is tappable
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -262,69 +320,100 @@ fun HomeScreenContent(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(GreenLight),
+                            .background(AppColors.PrimaryLight),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("🌱", fontSize = 16.sp)
                     }
-                    Column {
+
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
                             "Carbon footprint",
-                            fontSize = 12.sp,
-                            color = TextSecondary,
+                            fontSize   = 12.sp,
+                            color      = AppColors.TextSecondary,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             when {
-                                ui.carbonLoading -> "Calculating…"
+                                ui.carbonLoading       -> "Calculating…"
                                 ui.monthlyCarbonKg != null ->
                                     "%.2f kgCO₂e this month".format(ui.monthlyCarbonKg)
-                                else -> "No data yet"
+                                else                   -> "No data yet"
                             },
-                            fontSize = 14.sp,
-                            color = TextPrimary,
+                            fontSize   = 14.sp,
+                            color      = AppColors.TextPrimary,
                             fontWeight = FontWeight.SemiBold
+                        )
+                        if (!ui.carbonLoading && ui.monthlyCarbonKg != null) {
+                            Spacer(Modifier.height(2.dp))
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Info,
+                                    contentDescription = null,
+                                    tint     = AppColors.TextSecondary,
+                                    modifier = Modifier.size(11.dp)
+                                )
+                                Text(
+                                    "Estimates only · Tap to learn how this is calculated",
+                                    fontSize   = 10.sp,
+                                    color      = AppColors.TextSecondary,
+                                    lineHeight = 13.sp
+                                )
+                            }
+                        }
+                    }
+
+                    // Chevron hint
+                    if (!ui.carbonLoading && ui.monthlyCarbonKg != null) {
+                        Icon(
+                            Icons.Outlined.ChevronRight,
+                            contentDescription = "Learn more",
+                            tint     = AppColors.TextSecondary,
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
             }
 
-            // ── Quick actions ────────────────────────────────────────────
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    QuickActionButton(
-                        icon = Icons.Outlined.AddCircle,
-                        label = "Add Expense",
-                        color = GreenMint,
-                        modifier = Modifier.weight(1f),
-                        onClick = onAddExpense
-                    )
-                    QuickActionButton(
-                        icon = Icons.Outlined.Receipt,
-                        label = "Scan Receipt",
-                        color = Color(0xFF4A90E2),
-                        modifier = Modifier.weight(1f),
-                        onClick = onAddReceipt
-                    )
-                    QuickActionButton(
-                        icon = Icons.Outlined.Chat,
-                        label = "AI Chat",
-                        color = PurpleDeep,
-                        modifier = Modifier.weight(1f),
-                        onClick = onOpenChat
-                    )
-                    QuickActionButton(
-                        icon = Icons.Outlined.Lightbulb,
-                        label = "Tips",
-                        color = AmberWarm,
-                        modifier = Modifier.weight(1f),
-                        onClick = onOpenRecommendations
-                    )
-                }
-            }
+//            // ── Quick actions ────────────────────────────────────────────
+//            item {
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+//                ) {
+//                    QuickActionButton(
+//                        icon = Icons.Outlined.AddCircle,
+//                        label = "Add Expense",
+//                        color = AppColors.Primary,
+//                        modifier = Modifier.weight(1f),
+//                        onClick = onAddExpense
+//                    )
+//                    QuickActionButton(
+//                        icon = Icons.Outlined.Receipt,
+//                        label = "Scan Receipt",
+//                        color = Color(0xFF4A90E2),
+//                        modifier = Modifier.weight(1f),
+//                        onClick = onAddReceipt
+//                    )
+//                    QuickActionButton(
+//                        icon = Icons.Outlined.Chat,
+//                        label = "AI Chat",
+//                        color = AppColors.PurpleDeep,
+//                        modifier = Modifier.weight(1f),
+//                        onClick = onOpenChat
+//                    )
+//                    QuickActionButton(
+//                        icon = Icons.Outlined.Lightbulb,
+//                        label = "Tips",
+//                        color = AppColors.PrimaryYellow,
+//                        modifier = Modifier.weight(1f),
+//                        onClick = onOpenRecommendations
+//                    )
+//                }
+//            }
 
             // ── Transactions header ──────────────────────────────────────
             item {
@@ -337,14 +426,14 @@ fun HomeScreenContent(
                         "Recent Transactions",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = TextPrimary
+                        color = AppColors.TextPrimary
                     )
                     if (groupedByDate.isNotEmpty()) {
                         val totalCount = groupedByDate.sumOf { it.second.size }
                         Text(
                             "$totalCount entries",
                             fontSize = 12.sp,
-                            color = TextSecondary
+                            color = AppColors.TextSecondary
                         )
                     }
                 }
@@ -365,12 +454,12 @@ fun HomeScreenContent(
                             "No transactions yet",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = TextPrimary
+                            color = AppColors.TextPrimary
                         )
                         Text(
                             "Tap 'Add Expense' to get started",
                             fontSize = 13.sp,
-                            color = TextSecondary
+                            color = AppColors.TextSecondary
                         )
                     }
                 }
@@ -381,7 +470,7 @@ fun HomeScreenContent(
                 stickyHeader {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = SurfaceGray
+                        color = AppColors.Background
                     ) {
                         Row(
                             modifier = Modifier
@@ -394,17 +483,17 @@ fun HomeScreenContent(
                                 modifier = Modifier
                                     .size(6.dp)
                                     .clip(CircleShape)
-                                    .background(GreenMint)
+                                    .background(AppColors.Primary)
                             )
                             Text(
                                 date.format(dateFormatter),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = TextSecondary,
+                                color = AppColors.TextSecondary,
                                 fontWeight = FontWeight.SemiBold
                             )
                             HorizontalDivider(
                                 modifier = Modifier.weight(1f),
-                                color = DividerColor
+                                color = AppColors.Divider
                             )
                         }
                     }
@@ -475,7 +564,7 @@ fun IncomeExpenseSummaryCard(
                         .fillMaxHeight()
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFF6A3D9A), Color(0xFF5A2D82))
+                                listOf(Color(0xFF4A225E), Color(0xFF652F80))
                             )
                         )
                         .padding(14.dp)
@@ -506,17 +595,17 @@ fun IncomeExpenseSummaryCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
-                        Spacer(Modifier.weight(1f))
-                        AssistChip(
-                            onClick = onIncomeDetails,
-                            label = { Text("Details", fontSize = 11.sp) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = Color.White.copy(alpha = 0.2f),
-                                labelColor = Color.White
-                            ),
-                            border = null,
-                            modifier = Modifier.height(26.dp)
-                        )
+//                        Spacer(Modifier.weight(1f))
+//                        AssistChip(
+//                            onClick = onIncomeDetails,
+//                            label = { Text("Details", fontSize = 11.sp) },
+//                            colors = AssistChipDefaults.assistChipColors(
+//                                containerColor = Color.White.copy(alpha = 0.2f),
+//                                labelColor = Color.White
+//                            ),
+//                            border = null,
+//                            modifier = Modifier.height(26.dp)
+//                        )
                     }
                 }
 
@@ -527,7 +616,7 @@ fun IncomeExpenseSummaryCard(
                         .fillMaxHeight()
                         .background(
                             Brush.linearGradient(
-                                listOf(Color(0xFFFFB300), Color(0xFFFF8F00))
+                                listOf(Color(0xFFFFC915), Color(0xFFFF8F00))
                             )
                         )
                         .padding(14.dp)
@@ -561,17 +650,17 @@ fun IncomeExpenseSummaryCard(
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
-                        Spacer(Modifier.weight(1f))
-                        AssistChip(
-                            onClick = onExpenseDetails,
-                            label = { Text("Details", fontSize = 11.sp) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = Color.White.copy(alpha = 0.25f),
-                                labelColor = Color.White
-                            ),
-                            border = null,
-                            modifier = Modifier.height(26.dp)
-                        )
+//                        Spacer(Modifier.weight(1f))
+//                        AssistChip(
+//                            onClick = onExpenseDetails,
+//                            label = { Text("Details", fontSize = 11.sp) },
+//                            colors = AssistChipDefaults.assistChipColors(
+//                                containerColor = Color.White.copy(alpha = 0.25f),
+//                                labelColor = Color.White
+//                            ),
+//                            border = null,
+//                            modifier = Modifier.height(26.dp)
+//                        )
                     }
                 }
             }
@@ -592,14 +681,14 @@ fun IncomeExpenseSummaryCard(
                     Text(
                         "Balance",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = AppColors.TextSecondary,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         (if (balance >= 0) "+" else "") + "RM ${fmt.format(abs(balance))}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = if (balance >= 0) Color(0xFF00875A) else RedSoft
+                        color = if (balance >= 0) Color(0xFF00875A) else AppColors.Error
                     )
                 }
             }
@@ -607,7 +696,6 @@ fun IncomeExpenseSummaryCard(
     }
 }
 
-// ─── Month / Year dropdown (unchanged logic, same style) ─────────────────────
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonthYearDropdown(
@@ -636,14 +724,19 @@ fun MonthYearDropdown(
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = GreenMint,
-                unfocusedBorderColor = DividerColor
+                focusedBorderColor = AppColors.Primary, // Brand Purple #652F80
+                unfocusedBorderColor = AppColors.Divider,
+                focusedLabelColor = AppColors.Primary,
+                cursorColor = AppColors.Primary
             )
         )
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            // Adding this to prevent the "pinkish" tonal tint on the dropdown background
+            containerColor = AppColors.Surface,
+            tonalElevation = 0.dp
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -655,18 +748,27 @@ fun MonthYearDropdown(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = { displayYear -= 1 }) {
-                        Icon(Icons.Default.ChevronLeft, contentDescription = "Previous year")
+                        Icon(
+                            Icons.Default.ChevronLeft,
+                            contentDescription = "Previous year",
+                            tint = AppColors.Primary // Brand Purple
+                        )
                     }
                     Text(
                         displayYear.toString(),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = AppColors.TextPrimary
                     )
                     IconButton(
-                        onClick = { displayYear += 1 },
+                        onClick = { if (displayYear < now.year) displayYear += 1 },
                         enabled = displayYear < now.year
                     ) {
-                        Icon(Icons.Default.ChevronRight, contentDescription = "Next year")
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            contentDescription = "Next year",
+                            tint = if (displayYear < now.year) AppColors.Primary else AppColors.TextSecondary
+                        )
                     }
                 }
 
@@ -681,7 +783,7 @@ fun MonthYearDropdown(
                             val enabled = ym <= now
 
                             AssistChip(
-                                onClick = { onSelect(ym); expanded = false },
+                                onClick = { if (enabled) { onSelect(ym); expanded = false } },
                                 enabled = enabled,
                                 label = {
                                     Text(
@@ -691,12 +793,16 @@ fun MonthYearDropdown(
                                     )
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = if (isSelected) GreenLight else Color.Transparent,
-                                    labelColor = if (isSelected) GreenDark else TextPrimary
+                                    // isSelected uses our new light lavender tint
+                                    containerColor = if (isSelected) AppColors.PrimaryLight else Color.Transparent,
+                                    labelColor = if (isSelected) AppColors.Primary else AppColors.TextPrimary,
+                                    disabledLabelColor = AppColors.TextSecondary.copy(alpha = 0.5f)
                                 ),
                                 border = AssistChipDefaults.assistChipBorder(
-                                    enabled = true,
-                                    borderColor = if (isSelected) GreenMint else DividerColor
+                                    enabled = enabled,
+                                    borderColor = if (isSelected) AppColors.Primary else AppColors.Divider,
+                                    disabledBorderColor = AppColors.Divider.copy(alpha = 0.5f),
+                                    borderWidth = if (isSelected) 1.5.dp else 1.dp
                                 )
                             )
                         }
@@ -719,7 +825,7 @@ private fun QuickActionButton(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(CardWhite)
+            .background(AppColors.Surface)
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -737,7 +843,7 @@ private fun QuickActionButton(
         Text(
             label,
             fontSize = 10.sp,
-            color = TextSecondary,
+            color = AppColors.TextSecondary,
             fontWeight = FontWeight.Medium,
             maxLines = 1
         )
@@ -752,7 +858,7 @@ fun ExpenseCard(e: Expense, onClick: (Expense) -> Unit) {
             .fillMaxWidth()
             .clickable { onClick(e) },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -778,20 +884,20 @@ fun ExpenseCard(e: Expense, onClick: (Expense) -> Unit) {
                     e.category,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = TextPrimary
+                    color = AppColors.TextPrimary
                 )
                 if (e.merchant.isNotBlank()) {
                     Text(
                         e.merchant,
                         fontSize = 12.sp,
-                        color = TextSecondary
+                        color = AppColors.TextSecondary
                     )
                 }
                 if (e.description.isNotBlank()) {
                     Text(
                         e.description,
                         fontSize = 11.sp,
-                        color = TextSecondary
+                        color = AppColors.TextSecondary
                     )
                 }
                 e.co2eKg?.let {
@@ -803,7 +909,7 @@ fun ExpenseCard(e: Expense, onClick: (Expense) -> Unit) {
                         Text(
                             "%.2f kgCO₂e".format(it),
                             fontSize = 11.sp,
-                            color = GreenDark
+                            color = AppColors.PrimaryDark
                         )
                     }
                 }
@@ -813,7 +919,7 @@ fun ExpenseCard(e: Expense, onClick: (Expense) -> Unit) {
                 "-RM %.2f".format(e.amount),
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                color = RedSoft
+                color = AppColors.Error
             )
         }
     }
@@ -827,7 +933,7 @@ fun IncomeCard(i: Income, onClick: (Income) -> Unit) {
             .fillMaxWidth()
             .clickable { onClick(i) },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
@@ -841,7 +947,7 @@ fun IncomeCard(i: Income, onClick: (Income) -> Unit) {
                 modifier = Modifier
                     .size(42.dp)
                     .clip(CircleShape)
-                    .background(GreenLight),
+                    .background(AppColors.PrimaryLight),
                 contentAlignment = Alignment.Center
             ) {
                 Text(incomeEmoji(i.category), fontSize = 18.sp)
@@ -852,13 +958,13 @@ fun IncomeCard(i: Income, onClick: (Income) -> Unit) {
                     i.category,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = TextPrimary
+                    color = AppColors.TextPrimary
                 )
                 if (i.description.isNotBlank()) {
                     Text(
                         i.description,
                         fontSize = 12.sp,
-                        color = TextSecondary
+                        color = AppColors.TextSecondary
                     )
                 }
             }
@@ -895,4 +1001,374 @@ private fun incomeEmoji(category: String): String = when {
     category.contains("bonus",     ignoreCase = true) -> "🎉"
     category.contains("gift",      ignoreCase = true) -> "🎁"
     else -> "💰"
+}
+
+private val GreenMint     = Color(0xFF00C896)
+private val GreenDark     = Color(0xFF009E78)
+private val GreenLight    = Color(0xFFE6FBF5)
+private val CardWhite     = Color(0xFFFFFFFF)
+private val TextPrimary   = Color(0xFF1A1D23)
+private val TextSecondary = Color(0xFF6B7280)
+private val DividerColor  = Color(0xFFE5E7EB)
+private val AmberWarm     = Color(0xFFFFB300)
+private val AmberLight    = Color(0xFFFFF4E0)
+private val BlueAccent    = Color(0xFF4A90E2)
+private val BlueLight     = Color(0xFFEAF2FF)
+private val RedSoft       = Color(0xFFE53935)
+private val RedLight      = Color(0xFFFFECEC)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CarbonMethodologySheet(onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState       = sheetState,
+        containerColor   = CardWhite,
+        shape            = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 36.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // ── Header ───────────────────────────────────────────────────
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(GreenLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🌱", fontSize = 20.sp)
+                }
+                Column {
+                    Text(
+                        "How your carbon footprint is calculated",
+                        fontWeight = FontWeight.Bold,
+                        fontSize   = 17.sp,
+                        color      = TextPrimary
+                    )
+                    Text(
+                        "Methodology & data sources",
+                        fontSize = 13.sp,
+                        color    = TextSecondary
+                    )
+                }
+            }
+
+            // ── Important disclaimer ─────────────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(AmberLight)
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment     = Alignment.Top
+            ) {
+                Icon(
+                    Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint     = AmberWarm,
+                    modifier = Modifier.size(18.dp).padding(top = 1.dp)
+                )
+                Text(
+                    "These are estimates, not measurements. Actual emissions depend " +
+                            "on your specific vehicle, energy provider, diet, and behaviour. " +
+                            "Use these figures as a directional guide, not exact values.",
+                    fontSize   = 13.sp,
+                    color      = Color(0xFF7A5200),
+                    lineHeight = 19.sp
+                )
+            }
+
+            HorizontalDivider(color = DividerColor)
+
+            // ── How it works overview ────────────────────────────────────
+            SectionTitle("How it works")
+            Text(
+                "Every time you add an expense, MoneyBuddy estimates its carbon " +
+                        "footprint based on the category, merchant name, and amount. " +
+                        "Different rules apply depending on what type of expense it is.",
+                fontSize   = 14.sp,
+                color      = TextSecondary,
+                lineHeight = 21.sp
+            )
+
+            // ── Rule cards ───────────────────────────────────────────────
+            SectionTitle("Calculation rules")
+
+            RuleCard(
+                emoji      = "⛽",
+                title      = "Fuel & Petrol",
+                ruleType   = "Physics-based",
+                ruleColor  = GreenMint,
+                ruleBg     = GreenLight,
+                formula    = "RM spent ÷ petrol price per litre × 2.31 kgCO₂e/litre",
+                example    = "e.g. RM50 fill-up at RM2.05/L → 24.4L × 2.31 = 56.3 kgCO₂e",
+                triggers   = "Category contains 'transport', 'fuel', or 'petrol'; " +
+                        "or merchant is Petronas, Shell, Petron, BPetrol, Caltex",
+                sources    = listOf(
+                    "Petrol emission factor: IPCC AR6 Working Group III (2022)",
+                    "Petrol price: configurable in app settings (default: current Malaysian pump price)"
+                )
+            )
+
+            RuleCard(
+                emoji      = "💡",
+                title      = "Electricity Bills",
+                ruleType   = "Physics-based",
+                ruleColor  = BlueAccent,
+                ruleBg     = BlueLight,
+                formula    = "RM spent ÷ electricity rate per kWh × 0.585 kgCO₂e/kWh",
+                example    = "e.g. RM100 bill at RM0.50/kWh → 200 kWh × 0.585 = 117 kgCO₂e",
+                triggers   = "Category contains 'bills' or 'electric'; merchant is TNB/Tenaga; " +
+                        "or description mentions 'electricity' or 'utility'",
+                sources    = listOf(
+                    "Malaysia grid emission factor: Suruhanjaya Tenaga (Energy Commission) 2022",
+                    "Electricity rate: configurable in app settings"
+                )
+            )
+
+            RuleCard(
+                emoji      = "🚗",
+                title      = "Ride-hailing",
+                ruleType   = "Spend-based",
+                ruleColor  = Color(0xFF9B59B6),
+                ruleBg     = Color(0xFFF3EEFF),
+                formula    = "RM spent ÷ RM1.75/km × 0.171 kgCO₂e/km",
+                example    = "e.g. RM35 Grab ride → ~20 km × 0.171 = 3.4 kgCO₂e",
+                triggers   = "Merchant is Grab, MyCar, Maxim, or inDriver; " +
+                        "or description mentions 'grab', 'ride', 'taxi', or 'e-hailing'",
+                sources    = listOf(
+                    "Passenger car emission factor: UK DEFRA 2023 (0.171 kgCO₂e/km, petrol average)",
+                    "Fare rate: RM1.75/km (midpoint of Grab/MyCar Malaysian base rates)"
+                )
+            )
+
+            RuleCard(
+                emoji      = "🍔",
+                title      = "Food & Dining",
+                ruleType   = "Spend-based",
+                ruleColor  = Color(0xFFFF6B6B),
+                ruleBg     = Color(0xFFFFECEC),
+                formula    = "RM spent × 0.033 kgCO₂e/RM",
+                example    = "e.g. RM30 meal → 30 × 0.033 = 0.99 kgCO₂e",
+                triggers   = "Category contains 'food', 'dining', 'restaurant', or 'cafe'",
+                sources    = listOf(
+                    "Emission intensity: Eco2 Malaysia food lifecycle study, mixed Malaysian diet average",
+                    "Equivalent to ~3.3 kgCO₂e per RM100 spent on food"
+                )
+            )
+
+            RuleCard(
+                emoji      = "🛒",
+                title      = "Groceries",
+                ruleType   = "Spend-based",
+                ruleColor  = GreenDark,
+                ruleBg     = GreenLight,
+                formula    = "RM spent × 0.025 kgCO₂e/RM",
+                example    = "e.g. RM80 grocery run → 80 × 0.025 = 2.0 kgCO₂e",
+                triggers   = "Category contains 'groceries' or 'supermarket'; " +
+                        "or merchant is Mydin, Giant, Tesco, AEON, Jaya Grocer, " +
+                        "Village Grocer, 99 Speedmart, or KK Mart",
+                sources    = listOf(
+                    "Emission intensity: EXIOBASE 3 supply chain database, adjusted for Malaysia",
+                    "Slightly lower than dining as it excludes cooking and service energy"
+                )
+            )
+
+            RuleCard(
+                emoji      = "🛍️",
+                title      = "Shopping & Retail",
+                ruleType   = "Spend-based",
+                ruleColor  = Color(0xFFFF9F43),
+                ruleBg     = AmberLight,
+                formula    = "RM spent × 0.018 kgCO₂e/RM",
+                example    = "e.g. RM200 clothing purchase → 200 × 0.018 = 3.6 kgCO₂e",
+                triggers   = "Category contains 'shopping', 'clothing', 'electronics', or 'retail'",
+                sources    = listOf(
+                    "EXIOBASE 3 global retail goods average (~0.4 kgCO₂e/USD)",
+                    "Converted to MYR using purchasing power parity (PPP) adjustment"
+                )
+            )
+
+            RuleCard(
+                emoji      = "🎬",
+                title      = "Entertainment",
+                ruleType   = "Spend-based",
+                ruleColor  = Color(0xFF4A90E2),
+                ruleBg     = BlueLight,
+                formula    = "RM spent × 0.010 kgCO₂e/RM",
+                example    = "e.g. RM60 cinema tickets → 60 × 0.010 = 0.6 kgCO₂e",
+                triggers   = "Category contains 'entertainment', 'leisure', or 'recreation'",
+                sources    = listOf(
+                    "Service sector average emission intensity (EXIOBASE 3)",
+                    "Lower than physical goods as most emissions are indirect (venue energy, etc.)"
+                )
+            )
+
+            RuleCard(
+                emoji      = "💸",
+                title      = "Everything else",
+                ruleType   = "Fallback estimate",
+                ruleColor  = TextSecondary,
+                ruleBg     = Color(0xFFF0F0F0),
+                formula    = "RM spent × 0.008 kgCO₂e/RM",
+                example    = "e.g. RM100 miscellaneous → 100 × 0.008 = 0.8 kgCO₂e",
+                triggers   = "Any expense that doesn't match a more specific rule above",
+                sources    = listOf(
+                    "Conservative service-sector lower bound",
+                    "Used to ensure no expense shows zero — even unrecognised categories have some footprint"
+                )
+            )
+
+            HorizontalDivider(color = DividerColor)
+
+            // ── Malaysian benchmark ──────────────────────────────────────
+            SectionTitle("Malaysian benchmark")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(BlueLight)
+                    .padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment     = Alignment.Top
+            ) {
+                Icon(Icons.Outlined.Public, null, tint = BlueAccent, modifier = Modifier.size(18.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        "The average Malaysian produces ~7,000 kgCO₂e per year " +
+                                "(~583 kg/month), based on Our World in Data (2022).",
+                        fontSize   = 13.sp,
+                        color      = Color(0xFF1A3D6B),
+                        lineHeight = 19.sp
+                    )
+                    Text(
+                        "Note: this figure covers all emissions including those not tracked " +
+                                "by this app (e.g. flights, government services). Your in-app " +
+                                "estimate will typically be lower.",
+                        fontSize   = 12.sp,
+                        color      = BlueAccent,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+
+            // ── Tree equivalence ─────────────────────────────────────────
+            SectionTitle("Tree equivalence")
+            Text(
+                "The '🌳 trees/year' figure estimates how many trees would need to grow " +
+                        "for a full year to absorb your monthly footprint, projected annually.\n\n" +
+                        "Formula: (monthly kgCO₂e × 12) ÷ 21 kg/tree/year\n\n" +
+                        "The 21 kg/tree/year figure is the IPCC midpoint estimate. " +
+                        "Real absorption ranges from ~10 kg (young trees, dry climates) to " +
+                        "~48 kg (mature tropical trees) per year.",
+                fontSize   = 13.sp,
+                color      = TextSecondary,
+                lineHeight = 20.sp
+            )
+
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+// ─── Sub-composables ──────────────────────────────────────────────────────────
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(text, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TextPrimary)
+}
+
+@Composable
+private fun RuleCard(
+    emoji: String,
+    title: String,
+    ruleType: String,
+    ruleColor: Color,
+    ruleBg: Color,
+    formula: String,
+    example: String,
+    triggers: String,
+    sources: List<String>
+) {
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(14.dp),
+        colors    = CardDefaults.cardColors(containerColor = CardWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(emoji, fontSize = 22.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = TextPrimary)
+                }
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(ruleBg)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(ruleType, fontSize = 10.sp, color = ruleColor, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            HorizontalDivider(color = DividerColor)
+
+            // Formula
+            InfoRow(label = "Formula", value = formula, valueColor = TextPrimary)
+
+            // Example
+            InfoRow(label = "Example", value = example, valueColor = GreenDark)
+
+            // Triggers
+            InfoRow(label = "Applies when", value = triggers, valueColor = TextSecondary)
+
+            // Sources
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text("Sources", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.SemiBold)
+                sources.forEach { source ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "•",
+                            fontSize = 11.sp,
+                            color    = GreenMint,
+                            modifier = Modifier.padding(top = 1.dp)
+                        )
+                        Text(source, fontSize = 11.sp, color = TextSecondary, lineHeight = 16.sp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String, valueColor: Color) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(label, fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.SemiBold)
+        Text(value, fontSize = 12.sp, color = valueColor, lineHeight = 17.sp)
+    }
 }
