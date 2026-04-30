@@ -69,13 +69,7 @@ val BASE_URL = "http://192.168.1.10:8080"
 ## ▶️ Running the App
 
 * Connect an Android device
-* Click **Run ▶️** in Android Studio
-
----
-
-## 📸 Screenshots
-
-*(Add screenshots here — this is VERY important for employers)*
+* Click **Run ▶️** for backend and app in Android Studio
 
 ---
 
