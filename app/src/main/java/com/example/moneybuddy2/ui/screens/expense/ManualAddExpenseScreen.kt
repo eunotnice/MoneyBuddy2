@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -20,13 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.moneybuddy2.core.Constants
+import coil.compose.AsyncImage
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.di.AppContainer
 import com.example.moneybuddy2.ui.theme.AppColors
@@ -130,6 +132,10 @@ fun ManualAddExpenseScreen(
                         selected  = category,
                         onSelect  = { category = it }
                     )
+                }
+
+                if (isEditMode && existingExpense?.receiptImageUrl != null) {
+                    ReceiptImageSection(receiptImageUrl = existingExpense.receiptImageUrl)
                 }
 
                 // ── Merchant & Amount ────────────────────────────────────
@@ -490,4 +496,98 @@ private fun StyledTextField(
             errorBorderColor     = AppColors.Error
         )
     )
+}
+
+@Composable
+fun ReceiptImageSection(receiptImageUrl: String?) {
+    if (receiptImageUrl == null) return
+
+    var showFullscreen by remember { mutableStateOf(false) }
+
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(16.dp),
+        colors    = CardDefaults.cardColors(containerColor = AppColors.Surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AppColors.PrimaryLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Outlined.Receipt,
+                        contentDescription = null,
+                        tint     = AppColors.PrimaryDark,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Text(
+                    "Receipt",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize   = 14.sp,
+                    color      = AppColors.TextPrimary
+                )
+            }
+
+            AsyncImage(
+                model             = receiptImageUrl,
+                contentDescription = "Receipt image",
+                modifier          = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 160.dp, max = 320.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { showFullscreen = true },
+                contentScale      = ContentScale.Fit
+            )
+
+            Text(
+                "Tap image to view full size",
+                fontSize = 11.sp,
+                color    = AppColors.TextSecondary
+            )
+        }
+    }
+
+    // Fullscreen dialog
+    if (showFullscreen) {
+        Dialog(
+            onDismissRequest = { showFullscreen = false },
+            properties       = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .clickable { showFullscreen = false },
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model              = receiptImageUrl,
+                    contentDescription = "Receipt full size",
+                    modifier           = Modifier.fillMaxWidth(),
+                    contentScale       = ContentScale.Fit
+                )
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = "Close",
+                    tint     = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                        .size(28.dp)
+                )
+            }
+        }
+    }
 }

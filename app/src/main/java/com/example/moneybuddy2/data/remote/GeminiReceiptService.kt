@@ -150,8 +150,8 @@ class GeminiReceiptService(
             for (i in 0 until cand.length()) add(cand.optString(i))
         }
         val category = out.optString("category", "Others")
-        val categoryConfidence = out.optDouble("categoryConfidence", 0.0)
-        val categoryReason = out.optString("categoryReason", "")
+        out.optDouble("categoryConfidence", 0.0)
+        out.optString("categoryReason", "")
 
 
         return AiReceiptResult(

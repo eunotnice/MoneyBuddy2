@@ -1,7 +1,5 @@
 package com.example.moneybuddy2.ui.screens.home
 
-import android.util.Log
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,14 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.data.model.Income
-import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.viewmodel.HomeUiState
 import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 import java.text.NumberFormat
@@ -813,43 +809,6 @@ fun MonthYearDropdown(
     }
 }
 
-// ─── Quick action button ──────────────────────────────────────────────────────
-@Composable
-private fun QuickActionButton(
-    icon: ImageVector,
-    label: String,
-    color: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(AppColors.Surface)
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(color.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(icon, contentDescription = label, tint = color, modifier = Modifier.size(20.dp))
-        }
-        Text(
-            label,
-            fontSize = 10.sp,
-            color = AppColors.TextSecondary,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1
-        )
-    }
-}
-
 // ─── Expense card ─────────────────────────────────────────────────────────────
 @Composable
 fun ExpenseCard(e: Expense, onClick: (Expense) -> Unit) {
@@ -1014,8 +973,6 @@ private val AmberWarm     = Color(0xFFFFB300)
 private val AmberLight    = Color(0xFFFFF4E0)
 private val BlueAccent    = Color(0xFF4A90E2)
 private val BlueLight     = Color(0xFFEAF2FF)
-private val RedSoft       = Color(0xFFE53935)
-private val RedLight      = Color(0xFFFFECEC)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

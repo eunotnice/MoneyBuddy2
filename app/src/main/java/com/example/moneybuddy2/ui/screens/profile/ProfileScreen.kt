@@ -51,9 +51,9 @@ fun ProfileScreen(
     LaunchedEffect(Unit) { vm.loadProfile() }
 
     var name by remember { mutableStateOf("") }
-    val incomeText = ""
-    val budgetText = ""
-    val goalText   = ""
+    ""
+    ""
+    ""
     var currency by remember { mutableStateOf("MYR") }
 
     LaunchedEffect(ui.profile) {

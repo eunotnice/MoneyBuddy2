@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -20,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
-import com.example.moneybuddy2.MoneyBuddyApp
-import com.example.moneybuddy2.core.Constants
+import coil.compose.AsyncImage
 import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
 import java.text.SimpleDateFormat
@@ -241,11 +240,64 @@ fun ReceiptConfirmScreen(
                     }
                 }
 
+                // Show local image preview before saving
+                ui.imageUri?.let { uri ->
+                    Card(
+                        modifier  = Modifier.fillMaxWidth(),
+                        shape     = RoundedCornerShape(16.dp),
+                        colors    = CardDefaults.cardColors(containerColor = AppColors.Surface),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Row(
+                                verticalAlignment     = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(AppColors.PrimaryLight),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Receipt, null,
+                                        tint     = AppColors.PrimaryDark,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                Text(
+                                    "Scanned Receipt",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize   = 14.sp,
+                                    color      = AppColors.TextPrimary
+                                )
+                            }
+
+                            AsyncImage(
+                                model              = uri,          // ← local Uri, no upload needed
+                                contentDescription = "Receipt image",
+                                modifier           = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 160.dp, max = 320.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale       = ContentScale.Fit
+                            )
+                        }
+                    }
+                }
+
+
+
                 // ── Save button ──────────────────────────────────────────
                 Button(
                     onClick = {
                         val amt = amountText.toDoubleOrNull() ?: return@Button
                         vm.saveConfirmedExpense(
+                            context     = context,
                             merchant    = merchant,
                             amount      = amt,
                             category    = category,
@@ -399,3 +451,4 @@ private fun ConfirmTextField(
         )
     )
 }
+

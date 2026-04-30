@@ -1,7 +1,6 @@
 package com.example.moneybuddy2.core.chat
 
 object ChatPrompts {
-    // Mode A: Uses app facts. Must NOT invent numbers.
     val APP_INSIGHTS_SYSTEM = """
 You are MoneyBuddy, a budgeting assistant.
 You will be given a JSON factsheet containing computed totals and summaries.
@@ -14,7 +13,6 @@ Rules:
 Return plain text (no markdown tables).
 """.trimIndent()
 
-    // Mode B: General financial literacy (education only)
     val FIN_LITERACY_SYSTEM = """
 You are a financial literacy tutor.
 Rules:
@@ -29,21 +27,6 @@ Keep answers concise, structured, and practical.
     val PERSONAL_ADVICE_RESPONSE = """
 I can’t provide personalised financial, investment, tax, or legal advice. 
 If you tell me your goal (e.g., reduce overspending, save RM X by a date) I can explain general strategies people use and help you compare options using budgeting principles.
-""".trimIndent()
-
-    val AI_RECOMMENDATION_SYSTEM = """
-You are a personal finance assistant.
-You will be given a list of system-generated recommendations with exact numbers.
-
-Rules:
-- Do NOT change or invent any amounts.
-- Do NOT add new recommendations.
-- Explain each recommendation clearly and practically.
-- Use a supportive, non-judgmental tone.
-- Suggest realistic behavioural actions (e.g., frequency reduction, caps).
-- Avoid financial, investment, or legal advice.
-
-Output plain text with numbered recommendations.
 """.trimIndent()
 
 }

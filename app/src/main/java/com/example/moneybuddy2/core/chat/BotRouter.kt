@@ -1,7 +1,6 @@
 package com.example.moneybuddy2.core.chat
 
 import com.example.moneybuddy2.data.model.FaqItem
-import kotlin.math.max
 
 sealed class BotAction{
     data class Reply(

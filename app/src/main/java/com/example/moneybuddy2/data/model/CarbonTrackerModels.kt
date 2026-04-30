@@ -21,7 +21,6 @@ data class CarbonFactors(
     val electricityKgPerKwh: Double = 0.585,    // Suruhanjaya Tenaga Malaysia 2022
 
     // Spend-based intensity factors (kgCO₂e per RM)
-    // Source notes stored in CarbonEstimate.assumptions per estimate
     val foodKgPerRm: Double = 0.033,
     val groceriesKgPerRm: Double = 0.025,
     val shoppingKgPerRm: Double = 0.018,

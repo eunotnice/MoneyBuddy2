@@ -25,6 +25,7 @@ import com.example.moneybuddy2.data.remote.GeminiReceiptService
 
 //import com.example.moneybuddy2.data.remote.OpenAiReceiptService
 import com.example.moneybuddy2.core.util.DateUtils.isoToMillis
+import com.example.moneybuddy2.data.remote.FirebaseStorageService
 
 data class OcrUiState(
     val loading: Boolean = false,
@@ -40,7 +41,6 @@ class OcrViewModel (
     private val repo: MoneyRepository
 ) : ViewModel() {
 
-   // private val openAi = OpenAiReceiptService()
     private val gemini = GeminiReceiptService()
 
     private val TAG = "OcrVM"
@@ -132,6 +132,7 @@ class OcrViewModel (
     }
 
     fun saveConfirmedExpense(
+        context: android.content.Context,
         merchant: String,
         amount: Double,
         category: String,
@@ -144,23 +145,33 @@ class OcrViewModel (
             _ui.value = _ui.value.copy(error = "User not logged in")
             return
         }
+        val uri = _ui.value.imageUri
         val raw = _ui.value.rawText
 
         _ui.value = _ui.value.copy(loading = true, error = null)
 
         viewModelScope.launch {
+            // Upload image first, then save expense
+            val imageUrl: String? = if (uri != null) {
+                FirebaseStorageService.uploadReceiptImage(user.uid, uri, context)
+            } else null
+
             val expense = Expense(
-                merchant = merchant.trim(),
-                amount = amount,
-                category = category,
-                description = description.trim(),
-                dateMillis = dateMillis,
-                source = "ocr",
-                rawText = raw
+                merchant         = merchant.trim(),
+                amount           = amount,
+                category         = category,
+                description      = description.trim(),
+                dateMillis       = dateMillis,
+                source           = "ocr",
+                rawText          = raw,
+                receiptImageUrl  = imageUrl
             )
 
             val ok = repo.addExpense(user.uid, expense)
-            _ui.value = _ui.value.copy(loading = false, error = if (ok) null else "Failed to save expense")
+            _ui.value = _ui.value.copy(
+                loading = false,
+                error   = if (ok) null else "Failed to save expense"
+            )
             if (ok) onSaved()
         }
     }

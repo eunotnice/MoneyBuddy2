@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatRequestDto(
-    val message: String
+    val message: String,
+    val systemPrompt: String = ""
 )
 
 @Serializable

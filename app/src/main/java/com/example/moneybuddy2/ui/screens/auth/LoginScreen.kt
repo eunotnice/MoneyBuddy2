@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +52,10 @@ fun LoginScreen(
     var password        by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    var showForgotDialog by remember { mutableStateOf(false) }
+    var forgotEmail      by remember { mutableStateOf("") }
+    var forgotSent       by remember { mutableStateOf(false) }
+
     AuthScaffold {
         AuthHero(
             title    = "Welcome back",
@@ -92,10 +95,38 @@ fun LoginScreen(
                     }
                 }
             )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+                TextButton(
+                    onClick      = { forgotEmail = email; showForgotDialog = true },
+                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp)
+                ) {
+                    Text("Forgot password?", fontSize = 13.sp, color = AppColors.PrimaryDark)
+                }
+            }
         }
 
         Spacer(Modifier.height(8.dp))
         AuthErrorBanner(uiState.error)
+        if (showForgotDialog) {
+            ForgotPasswordDialog(
+                email         = forgotEmail,
+                onEmailChange = { forgotEmail = it },
+                sent          = forgotSent,
+                onDismiss     = {
+                    showForgotDialog = false
+                    forgotEmail      = ""
+                    forgotSent       = false
+                },
+                onSubmit = {
+                    vm.forgotPassword(
+                        email     = forgotEmail,
+                        onSuccess = { forgotSent = true },
+                        onError   = { /* uiState.error already set */ }
+                    )
+                },
+                loading = uiState.loading
+            )
+        }
         Spacer(Modifier.height(20.dp))
 
         Button(
@@ -266,5 +297,90 @@ private fun AuthErrorBanner(error: String?) {
     }
 }
 
+@Composable
+private fun ForgotPasswordDialog(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    sent: Boolean,
+    onDismiss: () -> Unit,
+    onSubmit: () -> Unit,
+    loading: Boolean
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape            = RoundedCornerShape(20.dp),
+        containerColor   = AppColors.Surface,
+        title = {
+            Text(
+                if (sent) "Email sent" else "Reset password",
+                fontWeight = FontWeight.Bold,
+                fontSize   = 18.sp
+            )
+        },
+        text = {
+            if (sent) {
+                Text(
+                    "If an account exists for $email, a reset link has been sent.Check your inbox.",
+                    fontSize   = 14.sp,
+                    color      = AppColors.TextSecondary,
+                    lineHeight = 20.sp
+                )
+            } else {
+                Column {
+                    Text(
+                        "Enter your account email and we'll send you a reset link.",
+                        fontSize   = 14.sp,
+                        color      = AppColors.TextSecondary,
+                        lineHeight = 20.sp
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    AuthTextField(
+                        value         = email,
+                        onValueChange = onEmailChange,
+                        label         = "Email address",
+                        placeholder   = "you@example.com",
+                        icon          = Icons.Outlined.Email,
+                        keyboardType  = KeyboardType.Email
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (sent) {
+                TextButton(onClick = onDismiss) {
+                    Text("Done", fontWeight = FontWeight.SemiBold, color = AppColors.PrimaryDark)
+                }
+            } else {
+                Button(
+                    onClick  = onSubmit,
+                    enabled  = !loading && email.isNotBlank(),
+                    shape    = RoundedCornerShape(12.dp),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor         = AppColors.Primary,
+                        contentColor           = Color.White,
+                        disabledContainerColor = AppColors.Primary.copy(alpha = 0.4f)
+                    )
+                ) {
+                    if (loading) {
+                        CircularProgressIndicator(
+                            modifier    = Modifier.size(16.dp),
+                            color       = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Send reset link", fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            if (!sent) {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = AppColors.TextSecondary)
+                }
+            }
+        }
+    )
+}
 
 

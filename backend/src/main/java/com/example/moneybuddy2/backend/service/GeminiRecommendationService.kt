@@ -1,10 +1,8 @@
 package com.example.moneybuddy2.backend.service
 
 import com.example.moneybuddy2.backend.config.GeminiConfig
-import com.example.moneybuddy2.backend.data.AiBudgetPlan
 import com.example.moneybuddy2.backend.data.AiRecommendationRequest
 import com.example.moneybuddy2.backend.data.AiRecommendationResponse
-import com.example.moneybuddy2.backend.data.AiSavingRecommendation
 import com.example.moneybuddy2.backend.data.UserFinanceSnapshot
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -18,16 +16,22 @@ import java.util.concurrent.TimeUnit
 class GeminiRecommendationService {
 
     val client = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(90, TimeUnit.SECONDS)
-        .writeTimeout(90, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(20, TimeUnit.SECONDS)
+        .writeTimeout(20, TimeUnit.SECONDS)
         .build()
     private val json = Json { ignoreUnknownKeys = true }
+
+    private var cachedRecommendation: AiRecommendationResponse? = null
 
     fun generateRecommendation(
         requestInput: AiRecommendationRequest,
         snapshot: UserFinanceSnapshot
     ): AiRecommendationResponse {
+        cachedRecommendation?.let {
+            println("Returning cached recommendation")
+            return it
+        }
         val systemInstruction = """
             You are MoneyBuddy's budgeting and saving assistant.
 
@@ -52,7 +56,28 @@ class GeminiRecommendationService {
             "- ${it.key}: RM %.2f".format(it.value)
         }
 
+        val ragContext = """
+FINANCIAL & SUSTAINABILITY GUIDELINES:
+
+BUDGETING (50/30/20 RULE)
+- Needs ≈ 50%, Wants ≈ 30%, Savings ≈ 20%
+- Flexible guideline; adjust based on income and commitments
+
+EMERGENCY FUND
+- Target: 3–6 months of essential expenses
+- Prioritise before investments
+
+FIXED DEPOSITS
+- Low-risk, predictable returns
+- Limited liquidity
+
+CARBON
+- Focus on reducing high carbon spending categories
+- Values are estimates for awareness only
+""".trimIndent()
+
         val userPrompt = """
+            $ragContext
             USER LIFESTYLE INPUT
             lifestyleNote: ${requestInput.lifestyleNote ?: ""}
             priorities: ${requestInput.priorities.joinToString(", ")}

@@ -15,7 +15,6 @@ data class SimulatorUiState(
     val errorMessage: String? = null
 ) {
     val totalAllocated: Int  get() = allocations.sumOf { it.allocationPercent }
-    val remainingPercent: Int get() = 100 - totalAllocated
     val allocationIsValid: Boolean get() = totalAllocated == 100
 }
 

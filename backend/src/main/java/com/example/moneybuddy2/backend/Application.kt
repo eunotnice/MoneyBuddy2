@@ -23,8 +23,8 @@ fun main() {
     val authService = AuthService()
     val insightsFactsBuilder = InsightsFactsBuilder()
     val geminiService = GeminiService()
-    val recommendationEngine = RecommendationEngine()
-    val budgetRecommendationService = BudgetRecommendationService()
+    RecommendationEngine()
+    BudgetRecommendationService()
     val geminiRecommendationService = GeminiRecommendationService()
 
 

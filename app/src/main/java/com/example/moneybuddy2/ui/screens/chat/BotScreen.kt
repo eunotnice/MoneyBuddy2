@@ -1,32 +1,17 @@
 package com.example.moneybuddy2.ui.screens.chat
 
-import android.os.Message
-import android.util.Log
-import android.view.textclassifier.ConversationActions
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.moneybuddy2.MoneyBuddyApp
 import com.example.moneybuddy2.core.chat.BotAction
 import com.example.moneybuddy2.core.chat.WhatsappHelper
-import com.example.moneybuddy2.data.model.ChatMessage
-import com.example.moneybuddy2.data.model.Role
-import com.example.moneybuddy2.ui.navigation.Routes
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -166,39 +151,3 @@ private const val TAG_CHATBOT = "ChatbotRoute"
 
 
 
-@Composable
-fun ChatbotRoute(
-    entry: NavBackStackEntry,
-    app: MoneyBuddyApp,
-    onBack: () -> Unit
-) {
-    // Use applicationContext to avoid capturing Activity
-    val appContext = app.applicationContext
-
-    // Log entry lifecycle for diagnosis
-    LaunchedEffect(entry.id) {
-        Log.d(TAG_CHATBOT, "ChatbotRoute entered: id=${entry.id}, route=${entry.destination.route}, state=${entry.lifecycle.currentState}")
-    }
-
-    val vm = remember(entry.id) {
-        try {
-            Log.d(TAG_CHATBOT, "Creating ChatbotViewModel (key=entry.id=${entry.id})")
-            app.container.createCompanyBotViewModel(appContext)
-        } catch (t: Throwable) {
-            Log.e(TAG_CHATBOT, "Failed creating ChatbotViewModel", t)
-            throw t
-        }
-    }
-
-    DisposableEffect(entry.id) {
-        onDispose {
-            Log.d(TAG_CHATBOT, "ChatbotRoute disposed: id=${entry.id}")
-        }
-    }
-
-    BotScreen(
-        vm = vm,
-        onBack = onBack,
-        whatsappPhoneE164 = "601127275319"
-    )
-}

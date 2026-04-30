@@ -1,9 +1,7 @@
 package com.example.moneybuddy2.backend.service
 
-import com.example.moneybuddy2.backend.data.BudgetPlanRecommendation
 import com.example.moneybuddy2.backend.data.BudgetPreferenceInput
 import com.example.moneybuddy2.backend.data.BudgetRatio
-import com.example.moneybuddy2.backend.data.UserFinanceSnapshot
 
 class BudgetRecommendationService {
 
@@ -17,7 +15,6 @@ class BudgetRecommendationService {
             append(" ")
             append(input?.riskPreference.orEmpty().lowercase())
         }
-
         return when {
             "save aggressively" in text ||
                     "save more" in text ||
@@ -69,49 +66,4 @@ class BudgetRecommendationService {
         }
     }
 
-    fun buildPlan(
-        snapshot: UserFinanceSnapshot,
-        input: BudgetPreferenceInput?
-    ): BudgetPlanRecommendation {
-        val ratio = chooseBudgetRatio(input)
-        val notes = mutableListOf<String>()
-
-        val incomeUsed = snapshot.totalIncome
-        val incomeConfidence = snapshot.incomeConfidence
-
-        if (incomeUsed == null) {
-            notes += "No income record is available, so exact budget amounts cannot be calculated."
-            notes += "The budget guidance should be treated as an estimate until income is added."
-
-            return BudgetPlanRecommendation(
-                incomeUsed = null,
-                incomeConfidence = incomeConfidence,
-                ruleLabel = ratio.label,
-                needsTarget = null,
-                wantsTarget = null,
-                savingsTarget = null,
-                notes = notes
-            )
-        }
-
-        val needsTarget = incomeUsed * ratio.needsRatio
-        val wantsTarget = incomeUsed * ratio.wantsRatio
-        val savingsTarget = incomeUsed * ratio.savingsRatio
-
-        if (incomeConfidence == "estimated") {
-            notes += "Income is estimated from recent records, so targets are approximate."
-        }
-
-        notes += "This plan uses ${ratio.label.lowercase()}."
-
-        return BudgetPlanRecommendation(
-            incomeUsed = incomeUsed,
-            incomeConfidence = incomeConfidence,
-            ruleLabel = ratio.label,
-            needsTarget = needsTarget,
-            wantsTarget = wantsTarget,
-            savingsTarget = savingsTarget,
-            notes = notes
-        )
-    }
 }

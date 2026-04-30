@@ -54,24 +54,4 @@ class FinanceRepository(
         }
     }
 
-    suspend fun listLatestExpenses(
-        uid: String,
-        limit: Int
-    ): List<Expense> = withContext(Dispatchers.IO) {
-        try {
-            val snapshot = db.collection("users")
-                .document(uid)
-                .collection("expenses")
-                .orderBy("dateMillis", com.google.cloud.firestore.Query.Direction.DESCENDING)
-                .limit(limit.toLong().toInt())
-                .get()
-                .get()
-
-            snapshot.documents.mapNotNull { doc ->
-                doc.toObject(Expense::class.java)
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
 }

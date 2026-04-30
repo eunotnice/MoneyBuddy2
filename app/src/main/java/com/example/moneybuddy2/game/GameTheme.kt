@@ -1,13 +1,7 @@
 package com.example.moneybuddy2.game
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 // ── Brand colours ─────────────────────────────────────────────────────────────
 object InvestIQColors {
@@ -43,22 +37,3 @@ private val LightColors = lightColorScheme(
     outline          = InvestIQColors.Border
 )
 
-@Composable
-fun InvestIQTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = LightColors,
-        typography  = Typography(
-            headlineMedium = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Medium, color = InvestIQColors.TextPrimary),
-            titleMedium    = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, color = InvestIQColors.TextPrimary),
-            bodyMedium     = TextStyle(fontSize = 14.sp, color = InvestIQColors.TextPrimary),
-            bodySmall      = TextStyle(fontSize = 12.sp, color = InvestIQColors.TextSecondary),
-            labelSmall     = TextStyle(fontSize = 11.sp, color = InvestIQColors.TextSecondary)
-        ),
-        shapes = Shapes(
-            small  = RoundedCornerShape(8.dp),
-            medium = RoundedCornerShape(12.dp),
-            large  = RoundedCornerShape(16.dp)
-        ),
-        content = content
-    )
-}

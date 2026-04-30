@@ -1,5 +1,3 @@
-//Note: the example above is a starting skeleton. After this works, you should replace the plain text parsing with proper structured output using Gemini JSON Schema, because that is the recommended reliable pattern.
-
 package com.example.moneybuddy2.backend.service
 
 import com.example.moneybuddy2.backend.config.GeminiConfig
@@ -15,20 +13,31 @@ class GeminiService {
 
     private val client = OkHttpClient()
 
+    private val fallbackSystemPrompt = """
+        You are MoneyBuddy's financial assistant.
+        Use only provided facts. Do not invent data.
+        Keep answers short and practical.
+        If income is missing, state clearly that the advice is an estimate.
+        Keep answer under 80 words.
+    """.trimIndent()
+
     fun generateAnswer(
         userMessage: String,
         snapshot: UserFinanceSnapshot,
-        facts: List<InsightFact>
+        facts: List<InsightFact>,
+        systemPrompt: String = ""   // ← added, falls back to default if empty
     ): String {
-        val systemInstruction = """
-            You are MoneyBuddy's financial assistant.
-            Use the provided financial facts exactly as given.
-            Do not invent personal numbers.
-            If income is missing, state clearly that the advice is an estimate.
-            Keep the answer practical and concise.
-        """.trimIndent()
 
-        val factsText = facts.joinToString("\n") { "- ${it.message}" }
+        val resolvedSystemPrompt = systemPrompt.ifBlank { fallbackSystemPrompt }
+
+        val dynamicFacts = InsightsFactsBuilder().fromSnapshot(snapshot)
+        val ragFacts = RagFactsProvider().getFacts()
+
+        val selectedFacts = (dynamicFacts + ragFacts)
+            .sortedBy { it.priority }
+            .take(6)
+
+        val factsText = selectedFacts.joinToString("\n") { "- ${it.message}" }
 
         val userPrompt = """
             USER QUESTION:
@@ -47,7 +56,7 @@ class GeminiService {
 
         val bodyJson = JSONObject()
             .put("systemInstruction", JSONObject()
-                .put("parts", JSONArray().put(JSONObject().put("text", systemInstruction))))
+                .put("parts", JSONArray().put(JSONObject().put("text", resolvedSystemPrompt))))  // ← uses resolvedSystemPrompt
             .put("contents", JSONArray().put(
                 JSONObject().put("parts", JSONArray().put(JSONObject().put("text", userPrompt)))
             ))

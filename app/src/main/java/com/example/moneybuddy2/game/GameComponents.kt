@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.moneybuddy2.game.InvestIQColors
 
 // ── Card wrapper ──────────────────────────────────────────────────────────────
 
@@ -46,20 +45,6 @@ fun SectionLabel(text: String, modifier: Modifier = Modifier) {
 }
 
 // ── Metric chip (small stat box) ──────────────────────────────────────────────
-
-@Composable
-fun MetricChip(label: String, value: String, valueColor: Color = InvestIQColors.TextPrimary) {
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(InvestIQColors.SurfaceSecondary)
-            .padding(10.dp)
-    ) {
-        Text(label, fontSize = 11.sp, color = InvestIQColors.TextSecondary)
-        Spacer(Modifier.height(2.dp))
-        Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = valueColor)
-    }
-}
 
 // ── Allocation status label ────────────────────────────────────────────────────
 

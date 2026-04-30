@@ -11,6 +11,9 @@ data class Expense (
     val rawText: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
 
+    val receiptImageUrl: String? = null,
+    val receiptStoragePath: String? = null,
+
     //carbon emissiont tracker
     val co2eKg: Double? = null,
     val co2eRuleId: String = "none",

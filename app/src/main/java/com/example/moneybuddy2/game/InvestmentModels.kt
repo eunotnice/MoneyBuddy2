@@ -1,10 +1,7 @@
 package com.example.moneybuddy2.game
-
-// ── Investment type definitions ───────────────────────────────────────────────
-
 enum class InvestmentType(
     val displayName: String,
-    val annualReturnRate: Double,   // decimal, e.g. 0.038 = 3.8%
+    val annualReturnRate: Double,
     val riskLabel: String,
     val description: String,
     val colorHex: String
@@ -88,7 +85,6 @@ data class SimulationResult(
     val overallGainPercent: Double
 ) {
     val bestPerformer: InvestmentResult get() = results.maxBy { it.futureValue }
-    val worstPerformer: InvestmentResult get() = results.minBy { it.futureValue }
     val isDiversified: Boolean get() = results.size >= 3
     val hasSafeAndGrowth: Boolean get() {
         val safe   = setOf(InvestmentType.FIXED_DEPOSIT, InvestmentType.BONDS)

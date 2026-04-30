@@ -30,7 +30,8 @@ fun Route.chatRoutes(
             val answer = geminiService.generateAnswer(
                 userMessage = request.message,
                 snapshot = snapshot,
-                facts = facts
+                facts = facts,
+                systemPrompt = request.systemPrompt  // ← added
             )
 
             call.respond(ChatResponse(answer = answer))

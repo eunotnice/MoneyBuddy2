@@ -1,7 +1,5 @@
 package com.example.moneybuddy2.ui.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import com.example.moneybuddy2.core.chat.BotAction
 import com.example.moneybuddy2.core.chat.BotRouter
@@ -9,7 +7,6 @@ import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.ChatUiState
 import com.example .moneybuddy2.data.model.Role
-import com.example.moneybuddy2.data.model.FaqItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -79,5 +76,4 @@ class ChatbotViewModel (
         return action
     }
 
-    fun getQuickReplies(): List<String> = categories + "Book consultation"
 }

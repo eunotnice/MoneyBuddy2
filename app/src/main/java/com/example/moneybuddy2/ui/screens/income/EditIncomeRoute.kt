@@ -14,9 +14,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.moneybuddy2.MoneyBuddyApp
-import com.example.moneybuddy2.ui.screens.income.AddIncomeScreen
-import com.example.moneybuddy2.ui.viewmodel.EditExpenseLoaderViewModel
-import com.example.moneybuddy2.ui.viewmodel.EditExpenseLoaderViewModelFactory
 import com.example.moneybuddy2.ui.viewmodel.EditIncomeLoaderViewModel
 import com.example.moneybuddy2.ui.viewmodel.EditIncomeLoaderViewModelFactory
 

@@ -1,20 +1,12 @@
 package com.example.moneybuddy2.di
 
 import android.content.Context
-import com.example.moneybuddy2.core.carbon.CarbonCalculator
-import com.example.moneybuddy2.core.carbon.EmissionFactors
 import com.example.moneybuddy2.core.carbon.CarbonEstimator
-import com.example.moneybuddy2.core.carbon.loadEmissionFactors
-import com.example.moneybuddy2.core.recommendation.Recommendation
 import com.example.moneybuddy2.data.model.CarbonFactors
 import com.example.moneybuddy2.data.model.FaqItem
-import com.example.moneybuddy2.data.repository.ChatRepository
 import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.data.repository.MoneyRepository
 import com.example.moneybuddy2.data.repository.MoneyRepositoryImpl
-import com.example.moneybuddy2.ui.viewmodel.CarbonViewModel
-import com.example.moneybuddy2.ui.viewmodel.OcrViewModel
-import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
 //import com.example.moneybuddy2.ui.viewmodel.RecommendationViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 import org.json.JSONArray

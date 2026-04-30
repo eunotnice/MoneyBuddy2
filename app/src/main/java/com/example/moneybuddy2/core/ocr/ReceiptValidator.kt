@@ -24,13 +24,11 @@ object ReceiptValidator {
         val lines = text.lines().map { it.trim() }.filter { it.isNotBlank() }
 
         var score = 0
-
         // 1. Has money values
         val moneyRegex = Regex("""(?i)(rm\s*)?(\d{1,3}(?:[,\s]\d{3})*|\d+)([.,]\d{2})""")
         val moneyMatches = moneyRegex.findAll(text).count()
         if (moneyMatches >= 1) score += 2
         if (moneyMatches >= 3) score += 1
-
         // 2. Has receipt keywords
         val keywords = listOf(
             "total", "subtotal", "tax", "cash", "change", "receipt",
@@ -39,27 +37,21 @@ object ReceiptValidator {
         val keywordHits = keywords.count { lower.contains(it) }
         if (keywordHits >= 1) score += 2
         if (keywordHits >= 2) score += 1
-
         // 3. Has date pattern
         val dateRegex1 = Regex("""\b\d{2}[/-]\d{2}[/-]\d{4}\b""")
         val dateRegex2 = Regex("""\b\d{4}[/-]\d{2}[/-]\d{2}\b""")
         if (dateRegex1.containsMatchIn(text) || dateRegex2.containsMatchIn(text)) {
             score += 2
         }
-
         // 4. Multiple short transactional lines
         val shortLines = lines.count { it.length in 3..40 }
         if (shortLines >= 4) score += 1
-
         // 5. Penalise paragraph-like text
         val longLines = lines.count { it.length > 80 }
         if (longLines >= 2) score -= 2
-
         // 6. Penalise too little text
         if (text.length < 20) score -= 3
-
         val confidence = (score.coerceIn(0, 8)) / 8.0
-
         return when {
             score >= 4 -> ReceiptValidationResult(
                 isReceipt = true,

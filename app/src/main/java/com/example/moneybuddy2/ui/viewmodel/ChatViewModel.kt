@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.core.chat.ChatPrompts
 import com.example.moneybuddy2.core.chat.IntentClassifier
-import com.example.moneybuddy2.data.remote.GeminiChatService
-import com.example.moneybuddy2.data.repository.MoneyRepository
-import com.example.moneybuddy2.data.repository.InsightsFactsBuilder
 import com.example.moneybuddy2.data.model.ChatIntent
 import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.ChatUiState
@@ -16,8 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.moneybuddy2.data.remote.FirebaseProvider
-import com.example.moneybuddy2.data.remote.GeminiChatResult
 import com.example.moneybuddy2.data.repository.ChatRepository
 
 class ChatViewModel(
@@ -46,11 +41,22 @@ class ChatViewModel(
                         ChatPrompts.PERSONAL_ADVICE_RESPONSE
                     }
 
-                    ChatIntent.FIN_LITERACY_GENERAL,
-                    ChatIntent.UNKNOWN,
                     ChatIntent.APP_INSIGHTS -> {
                         withContext(Dispatchers.IO) {
-                            chatRepository.sendChatMessage(trimmed)
+                            chatRepository.sendChatMessage(
+                                message = trimmed,
+                                systemPrompt = ChatPrompts.APP_INSIGHTS_SYSTEM
+                            )
+                        }
+                    }
+
+                    ChatIntent.FIN_LITERACY_GENERAL,
+                    ChatIntent.UNKNOWN -> {
+                        withContext(Dispatchers.IO) {
+                            chatRepository.sendChatMessage(
+                                message = trimmed,
+                                systemPrompt = ChatPrompts.FIN_LITERACY_SYSTEM
+                            )
                         }
                     }
                 }

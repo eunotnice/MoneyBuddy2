@@ -21,13 +21,3 @@ data class UserFinanceSnapshot (
     val treesFactorLabel: String? = null,
 )
 
-enum class ActionId {
-    SET_BUDGET_LIMITS,
-    CREATE_SAVINGS_GOAL_PLAN,
-    REDUCE_TOP_CATEGORY,
-    SUBSCRIPTION_CHECK,
-    EMERGENCY_FUND_PLAN,
-    FIXED_DEPOSIT_INFO,
-    CARBON_INSIGHT
-}
-

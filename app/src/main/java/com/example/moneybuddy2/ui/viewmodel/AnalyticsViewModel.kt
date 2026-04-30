@@ -3,7 +3,6 @@ package com.example.moneybuddy2.ui.viewmodel
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.moneybuddy2.core.util.DateUtils
 import com.example.moneybuddy2.data.model.CategorySlice
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.data.model.Income
@@ -238,7 +237,7 @@ fun buildCarbonTips(
     monthlyCarbonKg: Double
 ): List<String> {
     val tips = mutableListOf<String>()
-    val annualKg = monthlyCarbonKg * 12
+    monthlyCarbonKg * 12
     val malaysianAvgMonthly = 583.0  // ~7,000 kg/year ÷ 12
 
     // Personalised per category
@@ -407,7 +406,6 @@ private fun buildInsights(
             )
         }
     }
-
     // 2. Financial health insight
     val ratio = financialHealth.expenseToIncomeRatio
     if (ratio != null) {
@@ -429,7 +427,6 @@ private fun buildInsights(
             )
         }
     }
-
     // 3. Top category concentration insight
     if (topSlice != null) {
         val severity = if (topSlice.percent >= 40.0) InsightSeverity.WARNING else InsightSeverity.NEUTRAL
@@ -439,7 +436,6 @@ private fun buildInsights(
             severity = severity
         )
     }
-
     // 4. Carbon insight
     if (carbonBreakdown.isNotEmpty() && topCarbonCategory != null) {
         val topCarbon = carbonBreakdown.first()

@@ -1,7 +1,5 @@
 package com.example.moneybuddy2.data.model
 
-import com.example.moneybuddy2.core.chat.BotAction
-
 data class BudgetPlan(
     val income: Double,
     val needsLimit: Double,

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.data.remote.FirebaseProvider
+import com.example.moneybuddy2.data.remote.FirebaseStorageService
 import com.example.moneybuddy2.data.repository.MoneyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,6 +97,7 @@ class ExpenseViewModel(
 
     fun deleteExpense(
         expenseId: String,
+        receiptImageUrl: String? = null,
         onSuccess: () -> Unit
     ) {
         val user = FirebaseProvider.auth.currentUser
@@ -107,6 +109,7 @@ class ExpenseViewModel(
         _uiState.value = ExpenseUiState(loading = true)
 
         viewModelScope.launch {
+            FirebaseStorageService.deleteReceiptImage(receiptImageUrl)
             val ok = repo.deleteExpense(user.uid, expenseId)
             _uiState.value = if (ok) {
                 ExpenseUiState(success = true)

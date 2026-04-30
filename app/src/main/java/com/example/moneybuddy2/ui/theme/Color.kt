@@ -27,5 +27,4 @@ object AppColors {
     val ErrorLight     = Color(0xFFFDECEA)
 
     val PrimaryYellow     = Color(0xFFFFC915) // Now the Primary Yellow
-    val PurpleDeep     = Color(0xFF321740)
 }

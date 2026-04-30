@@ -14,14 +14,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,15 +41,8 @@ import com.example.moneybuddy2.ui.screens.chat.BotScreen
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModel
 import androidx.navigation.compose.navigation
 import com.example.moneybuddy2.MoneyBuddyApp
-import com.example.moneybuddy2.di.AppContainer
-import com.example.moneybuddy2.ui.screens.chat.ChatbotRoute
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.moneybuddy2.data.repository.FaqRepository
-import com.example.moneybuddy2.ui.navigation.BottomNavItem
 import com.example.moneybuddy2.ui.screens.analytics.AnalyticsScreen
 import com.example.moneybuddy2.ui.viewmodel.AnalyticsViewModel
 import com.example.moneybuddy2.ui.viewmodel.ChatbotViewModelFactory
@@ -59,13 +50,8 @@ import com.example.moneybuddy2.ui.viewmodel.HomeViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.dp
 import com.example.moneybuddy2.game.screens.ResultScreen
 import com.example.moneybuddy2.game.screens.SimulatorScreen
 import com.example.moneybuddy2.game.SimulatorViewModel
@@ -453,7 +439,7 @@ fun AppBottomBar(navController: NavHostController) {
 
     var showReceiptSheet by rememberSaveable{ mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
+    rememberCoroutineScope()
 
     if(showReceiptSheet){
         ModalBottomSheet(

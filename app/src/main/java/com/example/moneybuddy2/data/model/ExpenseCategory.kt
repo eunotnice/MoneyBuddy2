@@ -11,5 +11,4 @@ enum class ExpenseCategory (val wire: String){
     ENTERTAINMENT("Entertainment"),
     TRAVEL("Travel"),
     SERVICES("Services"),
-    OTHERS("Others")
 }

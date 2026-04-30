@@ -12,11 +12,9 @@ import com.example.moneybuddy2.core.carbon.CarbonEstimator
 import com.example.moneybuddy2.core.util.DateUtils.endOfCurrentMonthMillis
 import com.example.moneybuddy2.core.util.DateUtils.startOfCurrentMonthMillis
 import com.example.moneybuddy2.data.model.BudgetBucket
-import com.example.moneybuddy2.data.model.BudgetBucketSummary
 import com.example.moneybuddy2.data.model.ExpenseCategory
 import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.model.IncomeAssessment
-import com.example.moneybuddy2.data.model.UserFinanceSnapshot
 
 class MoneyRepositoryImpl  (
     private val carbonEstimator: CarbonEstimator
@@ -226,7 +224,7 @@ class MoneyRepositoryImpl  (
             snap.documents.mapNotNull { it.toObject(Expense::class.java) }
         } catch (e: Exception) {
             Log.e("MoneyRepo", "listExpensesInRange failed", e)
-            throw e   // IMPORTANT: let ViewModel show the error
+            throw e
         }
     }
 
@@ -288,31 +286,6 @@ class MoneyRepositoryImpl  (
 
             else -> BudgetBucket.UNCATEGORISED
         }
-    }
-
-    private fun computeBudgetBucketSummary(expenses: List<Expense>): BudgetBucketSummary {
-        var needs = 0.0
-        var wants = 0.0
-        var uncategorised = 0.0
-
-        for (expense in expenses) {
-            when (categoryToBudgetBucket(expense.category)) {
-                BudgetBucket.NEEDS -> needs += expense.amount
-                BudgetBucket.WANTS -> wants += expense.amount
-                BudgetBucket.UNCATEGORISED -> uncategorised += expense.amount
-            }
-        }
-
-        return BudgetBucketSummary(
-            needsTotal = needs,
-            wantsTotal = wants,
-            uncategorisedTotal = uncategorised,
-            byBucket = mapOf(
-                "needs" to needs,
-                "wants" to wants,
-                "uncategorised" to uncategorised
-            )
-        )
     }
 
     private fun median(values: List<Double>): Double? {
@@ -378,47 +351,4 @@ class MoneyRepositoryImpl  (
         )
     }
 
-    suspend fun buildUserFinanceSnapshot(
-        uid: String,
-        periodDays: Int = 30,
-        nowMillis: Long = System.currentTimeMillis()
-    ): UserFinanceSnapshot {
-        val periodStartMillis = nowMillis - periodDays * 24L * 60L * 60L * 1000L
-        val periodEndMillis = nowMillis
-
-        val expenses = listExpensesInRange(uid, periodStartMillis, periodEndMillis)
-        val incomeAssessment = assessIncome(uid, periodStartMillis, periodEndMillis)
-
-        val spendByCategory = expenses
-            .groupBy { it.category }
-            .mapValues { (_, items) -> items.sumOf { it.amount } }
-
-        val topCategories = spendByCategory
-            .toList()
-            .sortedByDescending { it.second }
-            .take(5)
-
-        val totalCo2eKg = expenses.sumOf { it.co2eKg ?: 0.0 }.takeIf { it > 0.0 }
-
-        val co2eByCategory = expenses
-            .groupBy { it.category }
-            .mapValues { (_, items) -> items.sumOf { it.co2eKg ?: 0.0 } }
-
-        return UserFinanceSnapshot(
-            userId = uid,
-            nowMillis = nowMillis,
-            currency = "MYR",
-            periodStartMillis = periodStartMillis,
-            periodEndMillis = periodEndMillis,
-            totalSpent = expenses.sumOf { it.amount },
-            totalIncome = incomeAssessment.totalIncome,
-            incomeCondifence = incomeAssessment.confidence,
-            spendByCategory = spendByCategory,
-            topSpendCategories = topCategories,
-            totalCo2eKg = totalCo2eKg,
-            co2eByCategory = co2eByCategory,
-            treesEquivalent = null,
-            treesFactorLabel = null
-        )
-    }
 }

@@ -1,6 +1,5 @@
 package com.example.moneybuddy2.data.repository
 
-import com.example.moneybuddy2.data.repository.AuthRepository
 import com.example.moneybuddy2.data.remote.AiRecommendationRequestDto
 import com.example.moneybuddy2.data.remote.AiRecommendationResponseDto
 import com.example.moneybuddy2.network.ApiClient

@@ -30,8 +30,6 @@ import com.example.moneybuddy2.data.model.ChatMessage
 import com.example.moneybuddy2.data.model.Role
 import com.example.moneybuddy2.ui.theme.AppColors
 import com.example.moneybuddy2.ui.viewmodel.ChatViewModel
-import java.text.SimpleDateFormat
-import java.util.*
 
 private val PurpleBubble    = Color(0xFFF3EBF7) 
 private val BotBubble      = Color(0xFFFFFFFF)

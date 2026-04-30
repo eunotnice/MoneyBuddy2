@@ -29,9 +29,8 @@ fun Route.aiRecommendationRoutes(
                 requestInput = request,
                 snapshot = snapshot
             )
-            println("SERVICE FINISHED")
             call.respond(result)
-            println("RESPONSE SENT")
+
         } catch (e: IllegalArgumentException) {
             e.printStackTrace()
             call.respond(

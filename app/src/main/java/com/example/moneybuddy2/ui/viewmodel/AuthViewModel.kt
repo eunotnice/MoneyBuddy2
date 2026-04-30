@@ -68,4 +68,25 @@ class AuthViewModel (
                 _uiState.value = AuthUiState(error = e.message ?: "Signup failed")
             }
     }
+
+    fun forgotPassword(email: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        if (email.isBlank()) {
+            onError("Please enter your email address")
+            return
+        }
+        _uiState.value = AuthUiState(loading = true)
+        FirebaseProvider.auth
+            .sendPasswordResetEmail(email.trim())
+            .addOnSuccessListener {
+                Log.d("AUTH", "Reset email sent successfully to $email")
+                _uiState.value = AuthUiState()
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Log.e("AUTH", "Reset email failed: ${e.message}")
+                _uiState.value = AuthUiState(error = e.message ?: "Failed to send reset email")
+                onError(e.message ?: "Failed to send reset email")
+            }
     }
+    }
+

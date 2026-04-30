@@ -2,7 +2,6 @@ package com.example.moneybuddy2.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.moneybuddy2.data.model.Expense
 import com.example.moneybuddy2.data.model.Income
 import com.example.moneybuddy2.data.remote.FirebaseProvider
 import com.example.moneybuddy2.data.repository.MoneyRepository

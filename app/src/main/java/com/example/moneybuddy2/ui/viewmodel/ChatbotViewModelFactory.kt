@@ -3,7 +3,6 @@ package com.example.moneybuddy2.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.moneybuddy2.data.repository.FaqRepository
 import com.example.moneybuddy2.di.AppContainer
 
 class ChatbotViewModelFactory (

@@ -100,7 +100,7 @@ class FinanceAnalysisService(
         periodDays: Int = 30,
         nowMillis: Long = System.currentTimeMillis()
     ): UserFinanceSnapshot {
-        val (start, end) = DateUtils.lastNDaysRange(nowMillis, periodDays)
+        val (start, end) = DateUtils.currentMonthRange(nowMillis)
 
         val expenses = repository.getExpensesInRange(uid, start, end)
         val incomeAssessment = assessIncome(uid, start, end)
@@ -125,7 +125,7 @@ class FinanceAnalysisService(
             nowMillis = nowMillis,
             periodStartMillis = start,
             periodEndMillis = end,
-            periodLabel = "Last $periodDays days",
+            periodLabel = DateUtils.currentMonthLabel(nowMillis),
             totalSpent = expenses.sumOf { it.amount },
             totalIncome = incomeAssessment.totalIncome,
             incomeConfidence = incomeAssessment.confidence,
@@ -141,13 +141,5 @@ class FinanceAnalysisService(
         )
     }
 
-    fun buildBudgetPlan(income: Double): BudgetPlan {
-        return BudgetPlan(
-            income = income,
-            needsLimit = income * 0.50,
-            wantsLimit = income * 0.30,
-            savingsLimit = income * 0.20,
-            ruleLabel = "50/30/20"
-        )
-    }
 }
+
