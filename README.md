@@ -8,11 +8,7 @@ MoneyBuddy2 is an Android application designed to help users track their expense
 
 ## 🚀 Features
 
-* 💰 Expense tracking by category
-* 📊 Analytics dashboard for spending insights
-* 🧾 Receipt scanning / logging *(if applicable)*
-* 🔍 Transaction history view
-* 🎯 Budget management
+<img width="1322" height="840" alt="image" src="https://github.com/user-attachments/assets/6fae6932-79dd-49b1-9c95-3409fa19a6ac" />
 
 ---
 
@@ -23,7 +19,7 @@ MoneyBuddy2 is an Android application designed to help users track their expense
 * **Datbase:** Firebase
 * **Architecture:** MVVM
 * **Tools:** Android Studio
-* **Other:** REST API integration *(if used)*
+* **Other:** REST API integration 
 
 ---
 
